@@ -74,12 +74,12 @@ get '/return/' do
       return 400, 'Unauthorized when trying to get a request token from Twitter' 
     end
 
-    begin 
+    # begin 
       access_token = request_token.get_access_token(
                                    :oauth_verifier => params[:oauth_verifier])
-    rescue OAuth::Unauthorized
-      return 400, 'Unauthorized when trying to get an access token from Twitter' 
-    end
+    # rescue OAuth::Unauthorized
+    #   return 400, 'Unauthorized when trying to get an access token from Twitter' 
+    # end
 
     if access_token
       # If this worked, send the access token back to BERG Cloud
