@@ -43,7 +43,7 @@ get '/configure/' do
     request_token = oauth.get_request_token(
           :oauth_callback => 'http://lp-my-best-tweets.herokuapp.com/return/')
   rescue OAuth::Unauthorized
-    redirect_to params['return_url']
+    return 400, 'Unauthorized when trying to get a request token from Twitter' 
   end
 
   # TODO:
