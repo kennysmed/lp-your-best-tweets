@@ -65,15 +65,15 @@ get '/return/' do
     end
 
     request_token = OAuth::RequestToken.new(oauth, session[:request_token],
-                                                  session[:request_token_secret])
+                                                session[:request_token_secret])
     access_token = request_token.get_access_token(
-                                     :oauth_verifier => params[:oauth_verifier])
+                                   :oauth_verifier => params[:oauth_verifier])
 
     if access_token
       # If this worked, send the access token back to BERG Cloud
       redirect "#{return_url}?config[access_token]=#{access_token}"
     else
-      return 500, 'Unable to retrieve an access token from Instagram'
+      return 500, 'Unable to retrieve an access token from Twitter'
     end
   else
     return 500, 'No oauth verifier was returned by Twitter'
@@ -99,4 +99,11 @@ end
 
 post '/validate_config/' do
 
+end
+
+
+error do
+  @error_name = env['sinatra.error'].name
+  @error_message = env['sinatra.error'].message
+  erb :error
 end
