@@ -103,9 +103,3 @@ post '/validate_config/' do
 
 end
 
-
-# error 500 do
-#   @error_name = env['sinatra.error'].name
-#   @error_message = env['sinatra.error'].message
-#   erb :error
-# end
