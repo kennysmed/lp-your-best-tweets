@@ -48,7 +48,7 @@ end
 #
 get '/sample/' do
   etag Digest::MD5.hexdigest('sample')
-  erb :now_tweets
+  erb :my_best_tweets
 end
 
 
