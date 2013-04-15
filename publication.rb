@@ -2,6 +2,7 @@ require 'oauth'
 require 'sinatra'
 require 'twitter'
 
+# So we can see what's going wrong on Heroku.
 set :show_exceptions, true
 
 # TODO: Error checking if these aren't present.
