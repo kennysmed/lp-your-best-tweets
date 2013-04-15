@@ -44,7 +44,7 @@ get '/configure/' do
     request_token = oauth.get_request_token(
           :oauth_callback => 'http://lp-my-best-tweets.herokuapp.com/return/')
   rescue OAuth::Unauthorized
-    return 400, 'Unauthorized when trying to get a request token from Twitter' 
+    return 400, 'Unauthorized when asking Twitter for a token to make a request' 
   end
 
   # TODO:
@@ -67,8 +67,13 @@ get '/return/' do
       return_url = request.cookies['bergcloud_return_url']
     end
 
-    request_token = OAuth::RequestToken.new(oauth, session[:request_token],
+    begin
+      request_token = OAuth::RequestToken.new(oauth, session[:request_token],
                                                 session[:request_token_secret])
+    rescue OAuth::Unauthorized
+      return 400, 'Unauthorized when trying to get a request token from Twitter' 
+    end
+
     access_token = request_token.get_access_token(
                                    :oauth_verifier => params[:oauth_verifier])
 
