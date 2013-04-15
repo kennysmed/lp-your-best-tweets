@@ -38,6 +38,7 @@ get '/configure/' do
   end
 
   # Send the user to Twitter to authorise, ask Twitter to return to /return/.
+  # TODO: The URL shouldn't be hard-coded.
   request_token = oauth.get_request_token(
           :oauth_callback => 'http://lp-my-best-tweets.herokuapp.com/return/')
 
