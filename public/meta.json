@@ -1,7 +1,7 @@
 {
     "owner_email" : "publishers@bergcloud.com",
     "publication_api_version":"1.0",
-    "name": "That's What I Call Tweets",
+    "name": "My Best Tweets",
     "description": "Your most favorited and retweeted tweets",
     "delivered_on": "every day",
     "send_timezone_info": false,
