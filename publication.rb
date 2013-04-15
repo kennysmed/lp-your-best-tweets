@@ -77,6 +77,7 @@ get '/return/' do
     end
 
     # begin 
+      # accesss_token will have access_token.token and access_token.secret
       access_token = request_token.get_access_token(
                                    :oauth_verifier => params[:oauth_verifier])
     # rescue OAuth::Unauthorized
@@ -85,7 +86,7 @@ get '/return/' do
 
     if access_token
       # If this worked, send the access token back to BERG Cloud
-      redirect "#{return_url}?config[access_token]=#{access_token}"
+      redirect "#{return_url}?config[access_token]=#{access_token.token}"
     else
       return 500, 'Unable to retrieve an access token from Twitter'
     end
