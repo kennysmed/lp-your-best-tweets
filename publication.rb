@@ -29,6 +29,7 @@ get '/configure/' do
   # returned by Twitter.
   # BERG Cloud will pass us a return_url which is specific to our publication
   # within BERG Cloud
+  puts "HELLO THERE"
   if params['return_url']
     response.set_cookie('bergcloud_return_url',
       :value => params['return_url'],
