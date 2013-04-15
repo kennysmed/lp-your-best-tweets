@@ -5,6 +5,8 @@ require 'twitter'
 # So we can see what's going wrong on Heroku.
 set :show_exceptions, true
 
+enable :sessions
+
 # TODO: Error checking if these aren't present.
 oauth = OAuth::Consumer.new(
                   ENV['TWITTER_CONSUMER_KEY'], ENV['TWITTER_CONSUMER_SECRET'],
@@ -44,7 +46,7 @@ get '/configure/' do
     request_token = oauth.get_request_token(
           :oauth_callback => 'http://lp-my-best-tweets.herokuapp.com/return/')
   rescue OAuth::Unauthorized
-    return 400, 'Unauthorized when asking Twitter for a token to make a request' 
+    return 401, 'Unauthorized when asking Twitter for a token to make a request' 
   end
 
   # TODO:
@@ -71,14 +73,14 @@ get '/return/' do
       request_token = OAuth::RequestToken.new(oauth, session[:request_token],
                                                 session[:request_token_secret])
     rescue OAuth::Unauthorized
-      return 400, 'Unauthorized when trying to get a request token from Twitter' 
+      return 401, 'Unauthorized when trying to get a request token from Twitter' 
     end
 
     # begin 
       access_token = request_token.get_access_token(
                                    :oauth_verifier => params[:oauth_verifier])
     # rescue OAuth::Unauthorized
-    #   return 400, 'Unauthorized when trying to get an access token from Twitter' 
+    #   return 401, 'Unauthorized when trying to get an access token from Twitter' 
     # end
 
     if access_token
