@@ -3,11 +3,9 @@ require 'sinatra'
 require 'twitter'
 
 # TODO: Error checking if these aren't present.
-set :twitter_consumer_key, ENV['TWITTER_CONSUMER_KEY']
-set :twitter_consumer_secret, ENV['TWITTER_CONSUMER_SECRET']
-
-oauth = OAuth::Consumer.new(:twitter_consumer_key, :twitter_consumer_secret,
-                                        { :site => 'https://api.twitter.com' })
+oauth = OAuth::Consumer.new(
+                  ENV['TWITTER_CONSUMER_KEY'], ENV['TWITTER_CONSUMER_SECRET'],
+                  { :site => 'https://api.twitter.com' })
 
 
 get '/edition/' do
