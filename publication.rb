@@ -2,6 +2,8 @@ require 'oauth'
 require 'sinatra'
 require 'twitter'
 
+set :show_exceptions, true
+
 # TODO: Error checking if these aren't present.
 oauth = OAuth::Consumer.new(
                   ENV['TWITTER_CONSUMER_KEY'], ENV['TWITTER_CONSUMER_SECRET'],
@@ -13,7 +15,7 @@ get '/edition/' do
     access_token = params[:access_token]
     erb :my_best_tweets
   else
-    return CustomError, 'No access token provided'
+    return 500, 'No access token provided'
   end
 
 end
@@ -59,7 +61,7 @@ get '/return/' do
 
   if params[:oauth_verifier]
     if request.cookies['bergcloud_return_url'].nil?
-      return CustomError, 'A cookie was expected, but was missing. Are cookies enabled? Please return to BERG Cloud and try again.'
+      return 500, 'A cookie was expected, but was missing. Are cookies enabled? Please return to BERG Cloud and try again.'
     else 
       return_url = request.cookies['bergcloud_return_url']
     end
@@ -73,10 +75,10 @@ get '/return/' do
       # If this worked, send the access token back to BERG Cloud
       redirect "#{return_url}?config[access_token]=#{access_token}"
     else
-      return CustomError, 'Unable to retrieve an access token from Twitter'
+      return 500, 'Unable to retrieve an access token from Twitter'
     end
   else
-    return CustomError, 'No oauth verifier was returned by Twitter'
+    return 500, 'No oauth verifier was returned by Twitter'
   end
 end
 
@@ -102,7 +104,8 @@ post '/validate_config/' do
 end
 
 
-error CustomError do
-  @error_message = env['sinatra.error'].message
-  erb :error
-end
+# error 500 do
+#   @error_name = env['sinatra.error'].name
+#   @error_message = env['sinatra.error'].message
+#   erb :error
+# end
