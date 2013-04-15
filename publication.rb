@@ -50,7 +50,7 @@ get '/configure/' do
   session[:token] = request_token.token
   session[:secret] = request_token.secret
 
-  redirect_to request_token.authorize_url
+  redirect request_token.authorize_url
 end
 
 
