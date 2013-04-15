@@ -76,13 +76,13 @@ get '/return/' do
       return 401, 'Unauthorized when trying to get a request token from Twitter' 
     end
 
-    # begin 
+    begin 
       # accesss_token will have access_token.token and access_token.secret
       access_token = request_token.get_access_token(
                                    :oauth_verifier => params[:oauth_verifier])
-    # rescue OAuth::Unauthorized
-    #   return 401, 'Unauthorized when trying to get an access token from Twitter' 
-    # end
+    rescue OAuth::Unauthorized
+      return 401, 'Unauthorized when trying to get an access token from Twitter' 
+    end
 
     if access_token
       # If this worked, send the access token back to BERG Cloud
