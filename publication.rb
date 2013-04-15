@@ -47,8 +47,8 @@ get '/configure/' do
   # TODO:
   # * Check that oauth_callback_confirmed is true.
 
-  session[:token] = request_token.token
-  session[:secret] = request_token.secret
+  session[:request_token] = request_token.token
+  session[:request_token_secret] = request_token.secret
 
   redirect request_token.authorize_url
 end
