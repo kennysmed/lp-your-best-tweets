@@ -20,7 +20,6 @@ get '/edition/' do
   else
     return 500, 'No access token provided'
   end
-
 end
 
 
@@ -49,17 +48,15 @@ get '/configure/' do
     return 401, 'Unauthorized when asking Twitter for a token to make a request' 
   end
 
-  puts request_token.token
-  puts request_token.secret
-  puts request_token.callback_confirmed
+  if request_token.callback_confirmed?
+    # Everything's worked!
+    session[:request_token] = request_token.token
+    session[:request_token_secret] = request_token.secret
 
-  # TODO:
-  # * Check that oauth_callback_confirmed is true.
-
-  session[:request_token] = request_token.token
-  session[:request_token_secret] = request_token.secret
-
-  redirect request_token.authorize_url
+    redirect request_token.authorize_url
+  else
+    return 400, 'Callback was not confirmed by Twitter'
+  end
 end
 
 
