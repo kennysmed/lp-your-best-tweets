@@ -29,7 +29,6 @@ get '/configure/' do
   # returned by Twitter.
   # BERG Cloud will pass us a return_url which is specific to our publication
   # within BERG Cloud
-  puts "HELLO THERE"
   if params['return_url']
     response.set_cookie('bergcloud_return_url',
       :value => params['return_url'],
@@ -50,7 +49,9 @@ get '/configure/' do
     return 401, 'Unauthorized when asking Twitter for a token to make a request' 
   end
 
-  puts request_token
+  puts request_token.token
+  puts request_token.secret
+  puts request_token.callback_confirmed
 
   # TODO:
   # * Check that oauth_callback_confirmed is true.
