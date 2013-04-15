@@ -1,0 +1,6 @@
+development:
+  twitter_consumer_key: ADD_YOUR_KEY_HERE
+  twitter_consumer_secret: ADD_YOUR_KEY_HERE
+production:
+  twitter_consumer_key: ADD_YOUR_KEY_HERE
+  twitter_consumer_secret: ADD_YOUR_KEY_HERE

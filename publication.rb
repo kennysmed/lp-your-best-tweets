@@ -1,6 +1,9 @@
 require 'oauth/consumer'
 require 'sinatra'
+require 'sinatra/config_file'
 require 'twitter'
+
+config_file './config.yml'
 
 
 get '/edition/' do
@@ -48,6 +51,7 @@ end
 #
 get '/sample/' do
   etag Digest::MD5.hexdigest('sample')
+  @twitter_consumer_key = settings.twitter_consumer_key
   erb :my_best_tweets
 end
 
