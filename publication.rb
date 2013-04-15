@@ -6,7 +6,7 @@ require 'twitter'
 set :twitter_consumer_key, ENV['TWITTER_CONSUMER_KEY']
 set :twitter_consumer_secret, ENV['TWITTER_CONSUMER_SECRET']
 
-oauth = OAuth::Consumer.new(twitter_consumer_key, twitter_consumer_secret,
+oauth = OAuth::Consumer.new(:twitter_consumer_key, :twitter_consumer_secret,
                                         { :site => 'https://api.twitter.com' })
 
 
