@@ -49,6 +49,8 @@ get '/configure/' do
     return 401, 'Unauthorized when asking Twitter for a token to make a request' 
   end
 
+  puts request_token
+
   # TODO:
   # * Check that oauth_callback_confirmed is true.
 
