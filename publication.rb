@@ -125,7 +125,7 @@ get '/return/' do
         :oauth_token => access_token.token,
         :oauth_token_secret => access_token.secret
       )
-      user = client.current_user
+      user = access_token.token + ' ' + access_token.secret
 
       @test_var = user 
       erb :my_best_tweets
