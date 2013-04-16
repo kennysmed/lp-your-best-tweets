@@ -117,8 +117,9 @@ get '/return/' do
       response = oauth.request(:get, '/account/verify_credentials.json',
                                    access_token, { :scheme => :query_string })
       user_info = JSON.parse(response.body)
-      puts "#{user_info}"
-      puts "USER ID: #{user_info['id']}"
+      @access_token = "#{user_info}"
+      # puts "USER ID: #{user_info['id']}"
+      erb :my_best_tweets
       # If this worked, send the access token back to BERG Cloud
       #redirect "#{return_url}?config[access_token]=#{access_token.token}"
     else
