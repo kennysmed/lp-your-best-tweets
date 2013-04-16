@@ -123,9 +123,9 @@ get '/return/' do
         :oauth_token => access_token.token,
         :oauth_token_secret => access_token.secret
       )
-      user = client.current_user.to_yaml
+      user = client.current_user
 
-      @access_token = "#{user}"
+      @access_token = user
       # puts "USER ID: #{user_info['id']}"
       erb :my_best_tweets
       # If this worked, send the access token back to BERG Cloud
