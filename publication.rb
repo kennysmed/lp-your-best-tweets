@@ -34,8 +34,8 @@ get '/edition/' do
     access_token_secret = REDIS.get("user:#{user_id}:secret")
 
     client = Twitter::Client.new(
-      :oauth_token => access_token.token,
-      :oauth_token_secret => access_token.secret
+      :oauth_token => access_token,
+      :oauth_token_secret => access_token_secret
     )
 
     begin
