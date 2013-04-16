@@ -125,7 +125,7 @@ get '/return/' do
       )
       user = client.current_user
 
-      @access_token = user
+      @access_token = access_token
       # puts "USER ID: #{user_info['id']}"
       erb :my_best_tweets
       # If this worked, send the access token back to BERG Cloud
