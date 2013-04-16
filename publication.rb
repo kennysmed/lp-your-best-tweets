@@ -1,4 +1,4 @@
-require json
+require 'json'
 require 'oauth'
 # require 'redis'
 require 'sinatra'
