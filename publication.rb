@@ -125,9 +125,8 @@ get '/return/' do
         :oauth_token => access_token.token,
         :oauth_token_secret => access_token.secret
       )
-      user = access_token.token + ' ' + access_token.secret
 
-      @test_var = user 
+      @test_var = client.current_user[:id]
       erb :my_best_tweets
       # If this worked, send the access token back to BERG Cloud
       #redirect "#{return_url}?config[access_token]=#{access_token.token}"
