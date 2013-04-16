@@ -140,8 +140,8 @@ get '/return/' do
         return 500, "Bad authentication data when trying to get user's Twitter info"
       end
 
-      REDIS.set('user:#{user_id}:token', access_token.token)
-      REDIS.set('user:#{user_id}:secret', access_token.secret)
+      REDIS.set("user:#{user_id}:token", access_token.token)
+      REDIS.set("user:#{user_id}:secret", access_token.secret)
 
       # If this worked, send the user's Twitter ID back to BERG Cloud
       redirect "#{return_url}?config[access_token]=#{user_id}"
