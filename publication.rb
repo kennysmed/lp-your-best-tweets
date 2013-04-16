@@ -50,6 +50,8 @@ get '/edition/' do
       return 401, "Not authorised to access this user's timeline."
     end
 
+    puts "TIMELINE LENGTH #{timeline.length}"
+
     def make_score(favorite_count, retweet_count)
       return favorite_count + retweet_count
     end
@@ -63,6 +65,8 @@ get '/edition/' do
         :score => make_score(tweet[:favorite_count], tweet[:retweet_count])
       })
     end
+
+    puts @tweets
 
     @tweets.sort_by! { |k| k['score']}.reverse
     erb :my_best_tweets
