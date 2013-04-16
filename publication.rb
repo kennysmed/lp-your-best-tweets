@@ -27,6 +27,9 @@ end
 # After clicking the link on the Publication listing on BERG Cloud Remote, the
 # user arrives here to authenticate with twitter.
 #
+# See https://dev.twitter.com/docs/auth/implementing-sign-twitter for the
+# process.
+#
 # == Parameters
 #   params['return_url'] will be the publication-specific URL we return the
 #     user to after authenticating.
@@ -39,7 +42,7 @@ get '/configure/' do
     session[:bergcloud_return_url] = params['return_url']
   end
 
-  # Send the user to Twitter to authorise, ask Twitter to return to /return/.
+  # OAUTH Step 1: Obtaining a request token.
   # TODO: The publication URL shouldn't be hard-coded.
   begin
     request_token = oauth.get_request_token(
@@ -49,10 +52,13 @@ get '/configure/' do
   end
 
   if request_token.callback_confirmed?
-    # Everything's worked! Save these for later.
+    # It's worked so far. Save these for later.
     session[:request_token] = request_token.token
     session[:request_token_secret] = request_token.secret
 
+    # OAUTH Step 2: Redirecting the user.
+    # The user is sent to Twitter and asked to approve the publication's
+    # access.
     redirect request_token.authorize_url
   else
     return 400, 'Callback was not confirmed by Twitter'
@@ -82,6 +88,7 @@ get '/return/' do
       session[:bergcloud_return_url] = nil
     end
 
+    # Recreate the request token using our stored token and secret.
     begin
       request_token = OAuth::RequestToken.new(oauth,
                                               session[:request_token],
@@ -90,10 +97,11 @@ get '/return/' do
       return 401, 'Unauthorized when trying to get a request token from Twitter' 
     end
 
-    # Tidy up, now we've used them.
+    # Tidy up, now we've finished with them.
     session[:request_token] = session[:request_token_secret] = nil
 
-    begin 
+    # OAuth Step 3: Converting the request token to an access token.
+    begin
       # accesss_token will have access_token.token and access_token.secret
       access_token = request_token.get_access_token(
                                    :oauth_verifier => params[:oauth_verifier])
@@ -102,6 +110,9 @@ get '/return/' do
     end
 
     if access_token
+      # We've finished authenticating!
+      puts "ACCESS TOKEN #{access_token.token}"
+      puts "ACCESS TOKEN SECRET #{access_token.secret}"
       # If this worked, send the access token back to BERG Cloud
       redirect "#{return_url}?config[access_token]=#{access_token.token}"
     else
