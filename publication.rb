@@ -1,6 +1,6 @@
 require 'json'
 require 'oauth'
-# require 'redis'
+require 'redis'
 require 'sinatra'
 require 'twitter'
 
@@ -19,6 +19,13 @@ Twitter.configure do |config|
   config.consumer_key = ENV['TWITTER_CONSUMER_KEY'] 
   config.consumer_secret = ENV['TWITTER_CONSUMER_SECRET']
 end
+
+
+configure do
+  uri = URI.parse(ENV["REDISCLOUD_URL"])
+  REDIS = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
+end
+
 
 # TODO
 get '/edition/' do
