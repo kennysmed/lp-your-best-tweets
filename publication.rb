@@ -32,7 +32,7 @@ end
 #     user to after authenticating.
 #
 get '/configure/' do
-  if !params.has_key?('return_url') || params['return_url'].nil?
+  if !params['return_url']
     return 400, 'No return_url parameter was provided'
   else
     # Save the return URL so we still have it after authentication.
@@ -72,7 +72,7 @@ end
 #     * :request_token_secret
 #
 get '/return/' do
-  if !params.has_key?(:oauth_verifier) || params[:oauth_verifier].nil?
+  if !params[:oauth_verifier]
     return 500, 'No oauth verifier was returned by Twitter'
   else
     if !session.has_key(:bergcloud_return_url) || session[:bergcloud_return_url].nil?
