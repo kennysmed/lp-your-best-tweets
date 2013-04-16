@@ -125,7 +125,7 @@ get '/return/' do
       )
       user = client.current_user
 
-      @access_token = access_token
+      @test_var = access_token
       # puts "USER ID: #{user_info['id']}"
       erb :my_best_tweets
       # If this worked, send the access token back to BERG Cloud
@@ -148,7 +148,7 @@ end
 #
 get '/sample/' do
   etag Digest::MD5.hexdigest('sample')
-  @access_token = "TEST_ACCESS_TOKEN"
+  @test_var = "TEST_ACCESS_TOKEN"
   erb :my_best_tweets
 end
 
