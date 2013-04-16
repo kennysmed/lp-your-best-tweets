@@ -125,7 +125,7 @@ get '/return/' do
       )
       user = Thread.new{client.current_user}
 
-      @test_var = user 
+      @test_var = "hello"
       erb :my_best_tweets
       # If this worked, send the access token back to BERG Cloud
       #redirect "#{return_url}?config[access_token]=#{access_token.token}"
