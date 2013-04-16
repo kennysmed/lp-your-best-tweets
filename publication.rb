@@ -30,8 +30,8 @@ end
 get '/edition/' do
   if params[:access_token]
     user_id = params[:access_token]
-    access_token = REDIS.set("user:#{user_id}:token")
-    access_token_secret = REDIS.set("user:#{user_id}:secret")
+    access_token = REDIS.get("user:#{user_id}:token")
+    access_token_secret = REDIS.get("user:#{user_id}:secret")
 
     client = Twitter::Client.new(
       :oauth_token => access_token.token,
