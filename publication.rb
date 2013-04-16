@@ -15,10 +15,10 @@ oauth = OAuth::Consumer.new(
                   { :site => 'https://api.twitter.com' })
 
 # For fetching data from Twitter, not for doing authentication.
-# Twitter.configure do |config|
-#   config.consumer_key = ENV['TWITTER_CONSUMER_KEY'] 
-#   config.consumer_secret = ENV['TWITTER_CONSUMER_SECRET']
-# end
+Twitter.configure do |config|
+  config.consumer_key = ENV['TWITTER_CONSUMER_KEY'] 
+  config.consumer_secret = ENV['TWITTER_CONSUMER_SECRET']
+end
 
 # TODO
 get '/edition/' do
@@ -120,8 +120,6 @@ get '/return/' do
       # We've finished authenticating!
       # We now need to fetch the user's ID from twitter.
       client = Twitter::Client.new(
-        :consumer_key => ENV['TWITTER_CONSUMER_KEY'],
-        :consumer_secret => ENV['TWITTER_CONSUMER_SECRET'],
         :oauth_token => access_token.token,
         :oauth_token_secret => access_token.secret
       )
