@@ -14,6 +14,11 @@ oauth = OAuth::Consumer.new(
                   ENV['TWITTER_CONSUMER_KEY'], ENV['TWITTER_CONSUMER_SECRET'],
                   { :site => 'https://api.twitter.com' })
 
+# For fetching data from Twitter, not for doing authentication.
+Twitter.configure do |config|
+  config.consumer_key = ENV['TWITTER_CONSUMER_KEY'] 
+  config.consumer_secret = ENV['TWITTER_CONSUMER_SECRET']
+end
 
 # TODO
 get '/edition/' do
@@ -114,19 +119,16 @@ get '/return/' do
     if access_token
       # We've finished authenticating!
       # We now need to fetch the user's ID from twitter.
-      response = oauth.request(:get, '/account/verify_credentials.json',
-                                   access_token, { :scheme => :query_string })
-      user_info = JSON.parse(response.body)
+      client = Twitter::Client.new(
+        :oauth_token => access_token.token,
+        :oauth_token_secret => access_token.secret
+      )
 
-      if user_info['errors']
-        return 500, "We got an error trying to get user info from Twitter: '#{user_info['errors'][0]['message']}'"
-      else
-        @access_token = "#{user_info}"
-        # puts "USER ID: #{user_info['id']}"
-        erb :my_best_tweets
-        # If this worked, send the access token back to BERG Cloud
-        #redirect "#{return_url}?config[access_token]=#{access_token.token}"
-      end
+      @access_token = "#{client.current_user}"
+      # puts "USER ID: #{user_info['id']}"
+      erb :my_best_tweets
+      # If this worked, send the access token back to BERG Cloud
+      #redirect "#{return_url}?config[access_token]=#{access_token.token}"
     else
       return 500, 'Unable to retrieve an access token from Twitter'
     end
