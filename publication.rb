@@ -123,7 +123,7 @@ get '/return/' do
       # We now need to fetch the user's ID from twitter.
       # This will give us client.current_user which contains the user's data.
       client = Twitter::Client.new(
-        :oauth_token => access_token.token+'faa',
+        :oauth_token => access_token.token,
         :oauth_token_secret => access_token.secret
       )
 
