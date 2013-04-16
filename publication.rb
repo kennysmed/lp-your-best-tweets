@@ -54,9 +54,9 @@ get '/edition/' do
       return favorite_count + retweet_count
     end
 
-    tweets = []
+    @tweets = []
     timeline.each do |tweet|
-      tweets.push({
+      @tweets.push({
         :text => tweet[:text],
         :favorite_count => tweet[:favorite_count],
         :retweet_count => tweet[:retweet_count],
@@ -64,7 +64,7 @@ get '/edition/' do
       })
     end
 
-    tweets.sort_by! { |k| k['score']}.reverse
+    @tweets.sort_by! { |k| k['score']}.reverse
     erb :my_best_tweets
   else
     return 500, 'No access token provided'
