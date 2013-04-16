@@ -123,7 +123,7 @@ get '/return/' do
         :oauth_token => access_token.token,
         :oauth_token_secret => access_token.secret
       )
-      user = client.current_user
+      user = Thread.new{client.current_user}
 
       @test_var = access_token
       # puts "USER ID: #{user_info['id']}"
