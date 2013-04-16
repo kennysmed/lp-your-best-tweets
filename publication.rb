@@ -1,4 +1,6 @@
+require json
 require 'oauth'
+# require 'redis'
 require 'sinatra'
 require 'twitter'
 
@@ -111,8 +113,11 @@ get '/return/' do
 
     if access_token
       # We've finished authenticating!
-      puts "ACCESS TOKEN #{access_token.token}"
-      puts "ACCESS TOKEN SECRET #{access_token.secret}"
+      # We now need to fetch the user's ID from twitter.
+      response = oauth.request(:get, '/account/verify_credentials.json',
+                                   access_token, { :scheme => :query_string })
+      user_info = JSON.parse(response.body)
+      puts "USER ID: #{user_info['id']}"
       # If this worked, send the access token back to BERG Cloud
       redirect "#{return_url}?config[access_token]=#{access_token.token}"
     else
