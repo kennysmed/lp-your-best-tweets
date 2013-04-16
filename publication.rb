@@ -49,7 +49,7 @@ get '/edition/' do
     rescue Twitter::Error::Unauthorized
       return 401, "Not authorised to access this user's timeline."
     end
-
+    puts timeline
     puts "TIMELINE LENGTH #{timeline.length}"
 
     def make_score(favorite_count, retweet_count)
