@@ -139,6 +139,7 @@ end
 get '/sample/' do
   etag Digest::MD5.hexdigest('sample')
   @access_token = "TEST_ACCESS_TOKEN"
+  puts "HELLO LOGS"
   erb :my_best_tweets
 end
 
