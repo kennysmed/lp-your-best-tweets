@@ -161,8 +161,7 @@ end
 #
 get '/sample/' do
   etag Digest::MD5.hexdigest('sample')
-  redis = Redis.new
-  @test_var = redis.get('user:12552:token')
+  @test_var = REDIS.get('user:12552:token')
   erb :my_best_tweets
 end
 
