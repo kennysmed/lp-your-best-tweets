@@ -13,6 +13,7 @@ oauth = OAuth::Consumer.new(
                   { :site => 'https://api.twitter.com' })
 
 
+# TODO
 get '/edition/' do
   if params[:access_token]
     access_token = params[:access_token]
@@ -23,20 +24,23 @@ get '/edition/' do
 end
 
 
+# After clicking the link on the Publication listing on BERG Cloud Remote, the
+# user arrives here to authenticate with twitter.
+#
+# == Parameters
+#   params['return_url'] will be the publication-specific URL we return the
+#     user to after authenticating.
+#
 get '/configure/' do
-  # First, set a cookie so we know where to return the token to when it's
-  # returned by Twitter.
-  # BERG Cloud will pass us a return_url which is specific to our publication
-  # within BERG Cloud
-  if params['return_url']
-    session[:bergcloud_return_url] = params['return_url']
-  else
-    # Should never happen
+  if !params.has_key?('return_url') || params['return_url'].nil?
     return 400, 'No return_url parameter was provided'
+  else
+    # Save the return URL so we still have it after authentication.
+    session[:bergcloud_return_url] = params['return_url']
   end
 
   # Send the user to Twitter to authorise, ask Twitter to return to /return/.
-  # TODO: The URL shouldn't be hard-coded.
+  # TODO: The publication URL shouldn't be hard-coded.
   begin
     request_token = oauth.get_request_token(
           :oauth_callback => 'http://lp-my-best-tweets.herokuapp.com/return/')
@@ -45,7 +49,7 @@ get '/configure/' do
   end
 
   if request_token.callback_confirmed?
-    # Everything's worked!
+    # Everything's worked! Save these for later.
     session[:request_token] = request_token.token
     session[:request_token_secret] = request_token.secret
 
@@ -56,18 +60,22 @@ get '/configure/' do
 end
 
 
-# User has returned form authenticating at Twitter.
+# User has returned from authenticating at Twitter.
 #
 # == Parameters
 #   params[:oauth_verifier] is returned from Twitter if things went well.
 #
 # == Session
-#   bergcloud_return_url should be set.
+#   These should be set in the session:
+#     * :bergcloud_return_url
+#     * :request_token
+#     * :request_token_secret
+#
 get '/return/' do
-  # User has returned from Twitter.
-
-  if params[:oauth_verifier]
-    if session[:bergcloud_return_url].nil?
+  if !params.has_key?(:oauth_verifier) || params[:oauth_verifier].nil?
+    return 500, 'No oauth verifier was returned by Twitter'
+  else
+    if !session.has_key(:bergcloud_return_url) || session[:bergcloud_return_url].nil?
       return 500, 'A cookie was expected, but was missing. Are cookies enabled? Please return to BERG Cloud and try again.'
     else 
       return_url = session[:bergcloud_return_url]
@@ -75,8 +83,9 @@ get '/return/' do
     end
 
     begin
-      request_token = OAuth::RequestToken.new(oauth, session[:request_token],
-                                                session[:request_token_secret])
+      request_token = OAuth::RequestToken.new(oauth,
+                                              session[:request_token],
+                                              session[:request_token_secret])
     rescue OAuth::Unauthorized
       return 401, 'Unauthorized when trying to get a request token from Twitter' 
     end
@@ -98,8 +107,6 @@ get '/return/' do
     else
       return 500, 'Unable to retrieve an access token from Twitter'
     end
-  else
-    return 500, 'No oauth verifier was returned by Twitter'
   end
 end
 
