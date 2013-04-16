@@ -117,9 +117,10 @@ get '/return/' do
       response = oauth.request(:get, '/account/verify_credentials.json',
                                    access_token, { :scheme => :query_string })
       user_info = JSON.parse(response.body)
+      puts "#{user_info}"
       puts "USER ID: #{user_info['id']}"
       # If this worked, send the access token back to BERG Cloud
-      redirect "#{return_url}?config[access_token]=#{access_token.token}"
+      #redirect "#{return_url}?config[access_token]=#{access_token.token}"
     else
       return 500, 'Unable to retrieve an access token from Twitter'
     end
