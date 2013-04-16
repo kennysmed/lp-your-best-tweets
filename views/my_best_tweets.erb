@@ -16,7 +16,7 @@
 </head>
 <body>
   <ol>
-    <% tweets.each do |t| %>
+    <% @tweets.each do |t| %>
       <li><%= t.text %> (<%= t.favorite_count %> favorites, <%= t.retweet_count %> retweets)</li>
     <% end %>
   </ol>

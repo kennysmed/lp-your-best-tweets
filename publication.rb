@@ -199,7 +199,11 @@ end
 #
 get '/sample/' do
   etag Digest::MD5.hexdigest('sample')
-  @test_var = REDIS.get('user:12552:token')
+  @tweets = [
+    {:text => "Tweet number 1", :favorite_count => 5, :retweet_count => 5, :score => 10},
+    {:text => "Tweet number 2", :favorite_count => 3, :retweet_count => 3, :score => 6},
+    {:text => "Tweet number 3", :favorite_count => 1, :retweet_count => 1, :score => 2},
+  ]
   erb :my_best_tweets
 end
 
