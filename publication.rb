@@ -116,20 +116,29 @@ get '/return/' do
       return 401, 'Unauthorized when trying to get an access token from Twitter' 
     end
 
-    if access_token
+    if !access_token
+      return 500, 'Unable to retrieve an access token from Twitter'
+    else
       # We've finished authenticating!
       # We now need to fetch the user's ID from twitter.
+      # This will give us client.current_user which contains the user's data.
       client = Twitter::Client.new(
         :oauth_token => access_token.token+'faa',
         :oauth_token_secret => access_token.secret
       )
 
-      @test_var = client.current_user[:id]
-      erb :my_best_tweets
-      # If this worked, send the access token back to BERG Cloud
-      #redirect "#{return_url}?config[access_token]=#{access_token.token}"
-    else
-      return 500, 'Unable to retrieve an access token from Twitter'
+      begin
+        user_id = client.current_user[:id]
+      rescue Twitter::Error::BadRequest
+        return 500, "Bad authentication data when trying to get user's Twitter info"
+      end
+
+      redis = Redis.new
+      redis.set('user:#{user_id}:token', access_token.token)
+      redis.set('user:#{user_id}:secret', access_token.secret)
+
+      # If this worked, send the user's Twitter ID back to BERG Cloud
+      redirect "#{return_url}?config[access_token]=#{user_id}"
     end
   end
 end
@@ -146,7 +155,8 @@ end
 #
 get '/sample/' do
   etag Digest::MD5.hexdigest('sample')
-  @test_var = "TEST_ACCESS_TOKEN"
+  redis = Redis.new
+  @test_var = redis.get('user:12552:token')
   erb :my_best_tweets
 end
 
