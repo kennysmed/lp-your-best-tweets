@@ -75,7 +75,7 @@ get '/return/' do
   if !params[:oauth_verifier]
     return 500, 'No oauth verifier was returned by Twitter'
   else
-    if !session.has_key(:bergcloud_return_url) || session[:bergcloud_return_url].nil?
+    if !session[:bergcloud_return_url]
       return 500, 'A cookie was expected, but was missing. Are cookies enabled? Please return to BERG Cloud and try again.'
     else 
       return_url = session[:bergcloud_return_url]
