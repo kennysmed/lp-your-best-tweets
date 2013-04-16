@@ -29,11 +29,7 @@ get '/configure/' do
   # BERG Cloud will pass us a return_url which is specific to our publication
   # within BERG Cloud
   if params['return_url']
-    response.set_cookie('bergcloud_return_url',
-      :value => params['return_url'],
-      :domain => request.host,
-      :path => '/',
-      :expires => Time.now + 86400) # Validity of one day
+    session[:bergcloud_return_url] = params['return_url']
   else
     # Should never happen
     return 400, 'No return_url parameter was provided'
@@ -60,14 +56,22 @@ get '/configure/' do
 end
 
 
+# User has returned form authenticating at Twitter.
+#
+# == Parameters
+#   params[:oauth_verifier] is returned from Twitter if things went well.
+#
+# == Session
+#   bergcloud_return_url should be set.
 get '/return/' do
   # User has returned from Twitter.
 
   if params[:oauth_verifier]
-    if request.cookies['bergcloud_return_url'].nil?
+    if session[:bergcloud_return_url].nil?
       return 500, 'A cookie was expected, but was missing. Are cookies enabled? Please return to BERG Cloud and try again.'
     else 
-      return_url = request.cookies['bergcloud_return_url']
+      return_url = session[:bergcloud_return_url]
+      session[:bergcloud_return_url] = nil
     end
 
     begin
@@ -76,6 +80,9 @@ get '/return/' do
     rescue OAuth::Unauthorized
       return 401, 'Unauthorized when trying to get a request token from Twitter' 
     end
+
+    # Tidy up, now we've used them.
+    session[:request_token] = session[:request_token_secret] = nil
 
     begin 
       # accesss_token will have access_token.token and access_token.secret
