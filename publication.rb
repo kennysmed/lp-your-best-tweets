@@ -22,15 +22,49 @@ end
 
 
 configure do
-  uri = URI.parse(ENV["REDISCLOUD_URL"])
+  uri = URI.parse(ENV['REDISCLOUD_URL'])
   REDIS = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
 end
 
 
-# TODO
 get '/edition/' do
   if params[:access_token]
-    access_token = params[:access_token]
+    user_id = params[:access_token]
+    access_token = REDIS.set("user:#{user_id}:token")
+    access_token_secret = REDIS.set("user:#{user_id}:secret")
+
+    client = Twitter::Client.new(
+      :oauth_token => access_token.token,
+      :oauth_token_secret => access_token.secret
+    )
+
+    begin
+      timeline = client.user_timeline(user_id,
+                                     :count => 200,
+                                     :exclude_replies => false,
+                                     :trim_user => true,
+                                     :include_rts => false)
+    rescue Twitter::Error::NotFound
+      return 500, "Twitter user ID not found."
+    rescue Twitter::Error::Unauthorized
+      return 401, "Not authorised to access this user's timeline."
+    end
+
+    def make_score(favorite_count, retweet_count)
+      return favorite_count + retweet_count
+    end
+
+    tweets = []
+    timeline.each do |tweet|
+      tweets.push({
+        :text => tweet[:text],
+        :favorite_count => tweet[:favorite_count],
+        :retweet_count => tweet[:retweet_count],
+        :score => make_score(tweet[:favorite_count], tweet[:retweet_count])
+      })
+    end
+
+    tweets.sort_by! { |k| k['score']}.reverse
     erb :my_best_tweets
   else
     return 500, 'No access token provided'
@@ -81,6 +115,9 @@ end
 
 
 # User has returned from authenticating at Twitter.
+# We now need to complete the OAuth dance, getting an access_token and secret
+# for the user, which we'll store, before passing the user's Twitter ID back
+# to BERG Cloud.
 #
 # == Parameters
 #   params[:oauth_verifier] is returned from Twitter if things went well.
@@ -134,6 +171,7 @@ get '/return/' do
         :oauth_token_secret => access_token.secret
       )
 
+      # We use the Twitter's User ID as the key for the data we store.
       begin
         user_id = client.current_user[:id]
       rescue Twitter::Error::BadRequest
