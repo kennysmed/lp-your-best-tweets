@@ -120,7 +120,7 @@ get '/return/' do
       # We've finished authenticating!
       # We now need to fetch the user's ID from twitter.
       client = Twitter::Client.new(
-        :oauth_token => access_token.token,
+        :oauth_token => access_token.token+'faa',
         :oauth_token_secret => access_token.secret
       )
 
