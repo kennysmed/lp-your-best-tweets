@@ -79,7 +79,7 @@ get '/edition/' do
       })
     end
 
-    @tweets.sort_by! { |k| k['score']}.reverse
+    @tweets.sort! { |x, y| y[:score] <=> x[:score] }
     erb :my_best_tweets
   else
     return 500, 'No access token provided'

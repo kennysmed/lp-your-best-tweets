@@ -15,10 +15,9 @@
   </style>
 </head>
 <body>
-  <p>Here: <%= @test %></p>
   <ol>
     <% @tweets.each do |t| %>
-      <li><%= t[:text] %> (<%= t[:favorite_count] %> favorites, <%= t[:retweet_count] %> retweets)</li>
+      <li><strong><%= t[:score] %></strong> <%= t[:text] %> (<%= t[:favorite_count] %> favorites, <%= t[:retweet_count] %> retweets)</li>
     <% end %>
   </ol>
 </body>
