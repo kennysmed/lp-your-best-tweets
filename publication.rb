@@ -77,7 +77,7 @@ end
 #
 get '/edition/' do
   if !params[:access_token]
-    return 500, 'No access token provided'
+    return 500, 'No access token provided.'
   end
 
   access_token = params[:access_token]
@@ -98,7 +98,7 @@ get '/edition/' do
   rescue Twitter::Error::NotFound
     return 500, "Twitter user ID not found."
   rescue Twitter::Error
-    return 500, "We got an error when fetching the timeline."
+    return 500, "There was an error when fetching the timeline."
   end
 
   # Now we've got loads of tweets we want to make a list of the ones from
