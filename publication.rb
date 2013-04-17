@@ -22,8 +22,23 @@ end
 
 
 configure do
-  uri = URI.parse(ENV['REDISCLOUD_URL'])
-  REDIS = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
+  # TODO make this envrinoment-specific stuff better.
+  begin
+    uri = URI.parse(ENV['REDISCLOUD_URL'])
+    REDIS = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
+  rescue
+    REDIS = Redis.new()
+  end
+end
+
+
+helpers do
+  # So we know where to do redirects to.
+  def domain
+    protocol = request.secure? ? 'https' : 'http'
+    port = request.env['SERVER_PORT'] ? ":#{request.env['SERVER_PORT']}" : ''
+    return "#{protocol}://#{request.env['SERVER_NAME']}#{port}"
+  end
 end
 
 
@@ -66,8 +81,6 @@ get '/edition/' do
       })
     end
 
-    puts @tweets
-
     @tweets.sort_by! { |k| k['score']}.reverse
     erb :my_best_tweets
   else
@@ -98,7 +111,7 @@ get '/configure/' do
   # TODO: The publication URL shouldn't be hard-coded.
   begin
     request_token = oauth.get_request_token(
-          :oauth_callback => 'http://lp-my-best-tweets.herokuapp.com/return/')
+                              :oauth_callback => "#{domain}/return/")
   rescue OAuth::Unauthorized
     return 401, 'Unauthorized when asking Twitter for a token to make a request' 
   end
