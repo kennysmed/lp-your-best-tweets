@@ -7,14 +7,35 @@
       width: 384px;
       padding: 0px;
       margin: 0px;
+      font-family: Arial, sans-serif;
+      font-size: 20px;
     }
     h1 {
+      font-weight: bold;
+      text-align: center;
       word-wrap: break-word;
-      font-family:sans-serif;
+      font-size: 30px;
+    }
+    p {
+      line-height: 1.2em;
+      margin: 0 0 0.5em 0;
+    }
+    li {
+      line-height: 1.2em;
+      margin-bottom: 0.5em;
+    }
+    .about {
+      font-size: 18px;
+    }
+    .about strong {
+      font-weight: bold;
+      font-size: 20px;
     }
   </style>
 </head>
 <body>
+  <h1>@<%= @screen_name %>’s<br />Best Tweets</h1>
+
   <% if @total_tweets <= @tweets.length %>
     <p>@<%= @screen_name %> only sent <%= @total_tweets %> tweet<% if @total_tweets > 1 %>s<% end %> in the past <% if @days_to_fetch == 1 %>24 hours<% else %><%= @days_to_fetch %> days<% end %>:</p>
 
@@ -26,13 +47,16 @@
   <ol>
     <% @tweets.each do |t| %>
       <li>
-        <!-- <%= t[:score] %> --><%= t[:text] %><br />
-        <% if t[:retweet_count] > 0 %>
-          <%= t[:retweet_count] %> Retweet<% if t[:retweet_count] != 1 %>s<% end %><% if t[:favorite_count] > 0 %>,<% end %>
-        <% end %>
-        <% if t[:favorite_count] > 0 %>
-          <%= t[:favorite_count] %> Favorite<% if t[:favorite_count] != 1 %>s<% end %>
-        <% end %>
+        <!-- <%= t[:score] %> -->
+        <%= t[:text] %><br />
+        <span class="about">
+          <% if t[:retweet_count] > 0 %>
+            <strong><%= t[:retweet_count] %></strong> Retweet<% if t[:retweet_count] != 1 %>s<% end %><% if t[:favorite_count] > 0 %>,<% end %>
+          <% end %>
+          <% if t[:favorite_count] > 0 %>
+            <strong><%= t[:favorite_count] %></strong> Favorite<% if t[:favorite_count] != 1 %>s<% end %>
+          <% end %>
+        </span>
       </li>
     <% end %>
   </ol>
