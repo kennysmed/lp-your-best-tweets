@@ -27,7 +27,7 @@ configure do
   begin
     uri = URI.parse(ENV['REDISCLOUD_URL'])
     REDIS = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
-  rescue
+  rescue URI::InvalidURIError
     REDIS = Redis.new()
   end
 
@@ -35,7 +35,7 @@ configure do
   set :days_to_fetch, 1
 
   # When is the oldest tweet we'd fetch.
-  set :time_cutoff, (Time.now - 86400)
+  set :time_cutoff, (Time.now - (86400 * settings.days_to_fetch))
 
   # Do we show the top 3? 10? etc.
   set :max_tweets_to_show, 3
