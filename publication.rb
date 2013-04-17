@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'json'
 require 'oauth'
 require 'redis'
@@ -82,6 +83,8 @@ get '/edition/' do
     client = twitter_client(access_token, access_token_secret)
 
     begin
+      # TODO: We're assuming that the period of tweets we need to fetch will be
+      # within the 200-per-request limit. But it might not be...
       timeline = client.user_timeline(user_id,
                                      :count => 200,
                                      :exclude_replies => false,
@@ -95,6 +98,8 @@ get '/edition/' do
       return 500, "We got an error when fetching the timeline."
     end
 
+    # Now we've got loads of tweets we want to make a list of the ones from
+    # the past n days, and calculate their favorite/retweet score.
     time_cutoff = (Time.now - (86400 * settings.days_to_fetch))
     @tweets = []
     timeline.each do |tweet|
@@ -106,11 +111,16 @@ get '/edition/' do
         :score => tweet_score(tweet[:favorite_count], tweet[:retweet_count])
       })
     end
+    # Into reverse order by score:
     @tweets.sort! { |x, y| y[:score] <=> x[:score] }
 
+    # The variables needed for the template:
     @total_tweets = @tweets.length
     @tweets = @tweets[0...settings.max_tweets_to_show]
     @days_to_fetch = settings.days_to_fetch
+    @screen_name = REDIS.get("user:#{access_token}:screen_name")
+
+    # Let's go!
     erb :my_best_tweets
   else
     return 500, 'No access token provided'
@@ -224,6 +234,7 @@ get '/return/' do
       end
 
       REDIS.set("user:#{access_token.token}:user_id", user_id)
+      REDIS.set("user:#{access_token.token}:screen_name", client.current_user[:screen_name])
       REDIS.set("user:#{access_token.token}:secret", access_token.secret)
 
       # If this worked, send the user's Access Token back to BERG Cloud
@@ -244,11 +255,29 @@ end
 #
 get '/sample/' do
   etag Digest::MD5.hexdigest('sample')
+
+  # Some hard-coded tweets from a single day of @samuelpepys' tweets.
   @tweets = [
-    {:text => "Tweet number 1", :favorite_count => 5, :retweet_count => 5, :score => 10},
-    {:text => "Tweet number 2", :favorite_count => 3, :retweet_count => 3, :score => 6},
-    {:text => "Tweet number 3", :favorite_count => 1, :retweet_count => 1, :score => 2},
+    # https://twitter.com/samuelpepys/status/323368562943197184
+    {:text => "Drank a good morning draught with Mr. Sheply, which occasioned my thinking upon the happy life that I live now.",
+      :favorite_count => 11, :retweet_count => 40, :score => tweet_score(11, 40)},
+    # https://twitter.com/samuelpepys/status/323358544365756417
+    {:text => "What with the goodness of the bed and the rocking of the ship I slept till almost ten o’clock.",
+      :favorite_count => 9, :retweet_count => 25, :score => tweet_score(9, 25)},
+    # https://twitter.com/samuelpepys/status/323237710284353537
+    {:text => "It being very rainy, and the rain coming upon my bed, I went and lay with John Goods in the great cabin below.",
+      :favorite_count => 1, :retweet_count => 15, :score => tweet_score(1, 15)},
   ]
+  # Into reverse order by score:
+  @tweets.sort! { |x, y| y[:score] <=> x[:score] }
+
+  # The variables needed for the template:
+  @total_tweets = 8
+  @tweets = @tweets[0...settings.max_tweets_to_show]
+  @days_to_fetch = 1
+  @screen_name = 'samuelpepys'
+
+  # Let's go!
   erb :my_best_tweets
 end
 
