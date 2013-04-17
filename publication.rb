@@ -62,13 +62,16 @@ end
 # Display the publication for a user.
 # 
 # == Parameters
-#   params[:access_token] should be a Twitter User ID.
+#   params[:access_token] should be a the access_token received from Twitter
+#     when the user authenticated.
 #
 get '/edition/' do
   if params[:access_token]
-    user_id = params[:access_token].to_i
-    client = twitter_client(REDIS.get("user:#{user_id}:token"),
-                            REDIS.get("user:#{user_id}:secret"))
+    access_token = params[:access_token]
+    access_token_secret = REDIS.get("user:#{access_token}:secret")
+    user_id = REDIS.get("user:#{access_token}:user_id").to_i
+    client = twitter_client(access_token, access_token_secret)
+
     begin
       timeline = client.user_timeline(user_id,
                                      :count => 200,
@@ -120,10 +123,10 @@ get '/configure/' do
   end
 
   # OAUTH Step 1: Obtaining a request token.
-  # TODO: The publication URL shouldn't be hard-coded.
+  # (`domain` is in `helpers`)
   begin
     request_token = oauth.get_request_token(
-                              :oauth_callback => "#{domain}/return/")
+                                        :oauth_callback => "#{domain}/return/")
   rescue OAuth::Unauthorized
     return 401, 'Unauthorized when asking Twitter for a token to make a request' 
   end
@@ -198,18 +201,19 @@ get '/return/' do
       # the user's data.
       client = twitter_client(access_token.token, access_token.secret)
 
-      # We use the Twitter's User ID as the key for the data we store.
+      # Although we have the access token and secret, we still need the Twitter
+      # user ID in order to actually fetch the tweets for the publication.
       begin
         user_id = client.current_user[:id]
       rescue Twitter::Error::BadRequest
         return 500, "Bad authentication data when trying to get user's Twitter info"
       end
 
-      REDIS.set("user:#{user_id}:token", access_token.token)
-      REDIS.set("user:#{user_id}:secret", access_token.secret)
+      REDIS.set("user:#{access_token.token}:user_id", user_id)
+      REDIS.set("user:#{access_token.token}:secret", access_token.secret)
 
-      # If this worked, send the user's Twitter ID back to BERG Cloud
-      redirect "#{return_url}?config[access_token]=#{user_id}"
+      # If this worked, send the user's Access Token back to BERG Cloud
+      redirect "#{return_url}?config[access_token]=#{access_token.token}"
     end
   end
 end
