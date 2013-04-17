@@ -34,39 +34,53 @@ end
 
 helpers do
   # So we know where to do redirects to.
+  # Example return: 'http://my-best-tweets.herokuapp.com'
+  # Should handle http/https and port numbers.
   def domain
     protocol = request.secure? ? 'https' : 'http'
     port = request.env['SERVER_PORT'] ? ":#{request.env['SERVER_PORT']}" : ''
     return "#{protocol}://#{request.env['SERVER_NAME']}#{port}"
   end
+
+  # Assuming we've already configured Twitter, this returns the client.
+  # Pass in the user's access token and secret
+  # (or the app's access token and secret).
+  def twitter_client(access_token, access_token_secret)
+    return Twitter::Client.new(
+        :oauth_token => access_token,
+        :oauth_token_secret => access_token_secret
+      )
+  end
+
+  # Returns a score for a tweet based on number of favorites and retweets.
+  def tweet_score(favorite_count, retweet_count)
+    return favorite_count + (retweet_count * 2)
+  end
 end
 
 
+# Display the publication for a user.
+# 
+# == Parameters
+#   params[:access_token] should be a Twitter User ID.
+#
 get '/edition/' do
   if params[:access_token]
     user_id = params[:access_token].to_i
-    access_token = REDIS.get("user:#{user_id}:token")
-    access_token_secret = REDIS.get("user:#{user_id}:secret")
-
-    client = Twitter::Client.new(
-      :oauth_token => access_token,
-      :oauth_token_secret => access_token_secret
-    )
-
+    client = twitter_client(REDIS.get("user:#{user_id}:token"),
+                            REDIS.get("user:#{user_id}:secret"))
     begin
       timeline = client.user_timeline(user_id,
                                      :count => 200,
                                      :exclude_replies => false,
                                      :trim_user => true,
                                      :include_rts => false)
-    rescue Twitter::Error::NotFound
-      return 500, "Twitter user ID not found."
     rescue Twitter::Error::Unauthorized
       return 401, "Not authorised to access this user's timeline."
-    end
-
-    def make_score(favorite_count, retweet_count)
-      return favorite_count + retweet_count
+    rescue Twitter::Error::NotFound
+      return 500, "Twitter user ID not found."
+    rescue Twitter::Error
+      return 500, "We got an error when fetching the timeline."
     end
 
     @tweets = []
@@ -75,7 +89,7 @@ get '/edition/' do
         :text => tweet[:text],
         :favorite_count => tweet[:favorite_count],
         :retweet_count => tweet[:retweet_count],
-        :score => make_score(tweet[:favorite_count], tweet[:retweet_count])
+        :score => tweet_score(tweet[:favorite_count], tweet[:retweet_count])
       })
     end
 
@@ -180,11 +194,9 @@ get '/return/' do
     else
       # We've finished authenticating!
       # We now need to fetch the user's ID from twitter.
-      # This will give us client.current_user which contains the user's data.
-      client = Twitter::Client.new(
-        :oauth_token => access_token.token,
-        :oauth_token_secret => access_token.secret
-      )
+      # The client will enable us to access client.current_user which contains
+      # the user's data.
+      client = twitter_client(access_token.token, access_token.secret)
 
       # We use the Twitter's User ID as the key for the data we store.
       begin
