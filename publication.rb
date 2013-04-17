@@ -30,8 +30,14 @@ configure do
     REDIS = Redis.new()
   end
 
+  # How many days' worth of tweets do we fetch?
+  set :days_to_fetch, 1
+
   # When is the oldest tweet we'd fetch.
   set :time_cutoff, (Time.now - 86400)
+
+  # Do we show the top 3? 10? etc.
+  set :max_tweets_to_show, 3
 end
 
 
@@ -89,10 +95,10 @@ get '/edition/' do
       return 500, "We got an error when fetching the timeline."
     end
 
-    now = Time.now
+    time_cutoff = (Time.now - (86400 * settings.days_to_fetch))
     @tweets = []
     timeline.each do |tweet|
-      break if tweet.created_at < settings.time_cutoff
+      break if tweet.created_at < time_cutoff
       @tweets.push({
         :text => tweet[:text],
         :favorite_count => tweet[:favorite_count],
@@ -100,8 +106,11 @@ get '/edition/' do
         :score => tweet_score(tweet[:favorite_count], tweet[:retweet_count])
       })
     end
-
     @tweets.sort! { |x, y| y[:score] <=> x[:score] }
+
+    @total_tweets = @tweets.length
+    @tweets = @tweets[0...settings.max_tweets_to_show]
+    @days_to_fetch = settings.days_to_fetch
     erb :my_best_tweets
   else
     return 500, 'No access token provided'
