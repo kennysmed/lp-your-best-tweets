@@ -120,6 +120,9 @@ get '/edition/' do
     @days_to_fetch = settings.days_to_fetch
     @screen_name = REDIS.get("user:#{access_token}:screen_name")
 
+    # Set the etag to be for this Twitter user today.
+    etag Digest::MD5.hexdigest(@screen_name + Date.today.strftime('%d%m%Y'))
+
     # Let's go!
     erb :my_best_tweets
   else
