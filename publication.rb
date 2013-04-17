@@ -44,7 +44,7 @@ end
 
 get '/edition/' do
   if params[:access_token]
-    user_id = params[:access_token]
+    user_id = params[:access_token].to_i
     access_token = REDIS.get("user:#{user_id}:token")
     access_token_secret = REDIS.get("user:#{user_id}:secret")
 
@@ -64,8 +64,6 @@ get '/edition/' do
     rescue Twitter::Error::Unauthorized
       return 401, "Not authorised to access this user's timeline."
     end
-    puts timeline
-    puts "TIMELINE LENGTH #{timeline.length}"
 
     def make_score(favorite_count, retweet_count)
       return favorite_count + retweet_count
