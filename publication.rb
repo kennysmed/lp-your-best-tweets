@@ -29,6 +29,9 @@ configure do
   rescue
     REDIS = Redis.new()
   end
+
+  # When is the oldest tweet we'd fetch.
+  set :time_cutoff, (Time.now - 86400)
 end
 
 
@@ -86,8 +89,10 @@ get '/edition/' do
       return 500, "We got an error when fetching the timeline."
     end
 
+    now = Time.now
     @tweets = []
     timeline.each do |tweet|
+      break if tweet.created_at < settings.time_cutoff
       @tweets.push({
         :text => tweet[:text],
         :favorite_count => tweet[:favorite_count],
