@@ -79,7 +79,7 @@ get '/edition/' do
   if !params[:access_token]
     return 500, 'No access token provided'
   end
-  
+
   access_token = params[:access_token]
   access_token_secret = REDIS.get("user:#{access_token}:secret")
   user_id = REDIS.get("user:#{access_token}:user_id").to_i
@@ -262,8 +262,6 @@ end
 # HTML/CSS edition with etag.
 #
 get '/sample/' do
-  etag Digest::MD5.hexdigest('sample')
-
   # Some hard-coded tweets from a single day of @samuelpepys' tweets.
   @tweets = [
     # https://twitter.com/samuelpepys/status/323368562943197184
@@ -284,6 +282,8 @@ get '/sample/' do
   @tweets = @tweets[0...settings.max_tweets_to_show]
   @days_to_fetch = 1
   @screen_name = 'samuelpepys'
+
+  etag Digest::MD5.hexdigest('sample')
 
   # Let's go!
   erb :my_best_tweets
