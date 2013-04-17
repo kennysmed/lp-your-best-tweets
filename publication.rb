@@ -76,58 +76,58 @@ end
 #     when the user authenticated.
 #
 get '/edition/' do
-  if params[:access_token]
-    access_token = params[:access_token]
-    access_token_secret = REDIS.get("user:#{access_token}:secret")
-    user_id = REDIS.get("user:#{access_token}:user_id").to_i
-    client = twitter_client(access_token, access_token_secret)
-
-    begin
-      # TODO: We're assuming that the period of tweets we need to fetch will be
-      # within the 200-per-request limit. But it might not be...
-      timeline = client.user_timeline(user_id,
-                                     :count => 200,
-                                     :exclude_replies => false,
-                                     :trim_user => true,
-                                     :include_rts => false)
-    rescue Twitter::Error::Unauthorized
-      return 401, "Not authorised to access this user's timeline."
-    rescue Twitter::Error::NotFound
-      return 500, "Twitter user ID not found."
-    rescue Twitter::Error
-      return 500, "We got an error when fetching the timeline."
-    end
-
-    # Now we've got loads of tweets we want to make a list of the ones from
-    # the past n days, and calculate their favorite/retweet score.
-    time_cutoff = (Time.now - (86400 * settings.days_to_fetch))
-    @tweets = []
-    timeline.each do |tweet|
-      break if tweet.created_at < time_cutoff
-      @tweets.push({
-        :text => tweet[:text],
-        :favorite_count => tweet[:favorite_count],
-        :retweet_count => tweet[:retweet_count],
-        :score => tweet_score(tweet[:favorite_count], tweet[:retweet_count])
-      })
-    end
-    # Into reverse order by score:
-    @tweets.sort! { |x, y| y[:score] <=> x[:score] }
-
-    # The variables needed for the template:
-    @total_tweets = @tweets.length
-    @tweets = @tweets[0...settings.max_tweets_to_show]
-    @days_to_fetch = settings.days_to_fetch
-    @screen_name = REDIS.get("user:#{access_token}:screen_name")
-
-    # Set the etag to be for this Twitter user today.
-    etag Digest::MD5.hexdigest(@screen_name + Date.today.strftime('%d%m%Y'))
-
-    # Let's go!
-    erb :my_best_tweets
-  else
+  if !params[:access_token]
     return 500, 'No access token provided'
   end
+  
+  access_token = params[:access_token]
+  access_token_secret = REDIS.get("user:#{access_token}:secret")
+  user_id = REDIS.get("user:#{access_token}:user_id").to_i
+  client = twitter_client(access_token, access_token_secret)
+
+  begin
+    # TODO: We're assuming that the period of tweets we need to fetch will be
+    # within the 200-per-request limit. But it might not be...
+    timeline = client.user_timeline(user_id,
+                                   :count => 200,
+                                   :exclude_replies => false,
+                                   :trim_user => true,
+                                   :include_rts => false)
+  rescue Twitter::Error::Unauthorized
+    return 401, "Not authorised to access this user's timeline."
+  rescue Twitter::Error::NotFound
+    return 500, "Twitter user ID not found."
+  rescue Twitter::Error
+    return 500, "We got an error when fetching the timeline."
+  end
+
+  # Now we've got loads of tweets we want to make a list of the ones from
+  # the past n days, and calculate their favorite/retweet score.
+  time_cutoff = (Time.now - (86400 * settings.days_to_fetch))
+  @tweets = []
+  timeline.each do |tweet|
+    break if tweet.created_at < time_cutoff
+    @tweets.push({
+      :text => tweet[:text],
+      :favorite_count => tweet[:favorite_count],
+      :retweet_count => tweet[:retweet_count],
+      :score => tweet_score(tweet[:favorite_count], tweet[:retweet_count])
+    })
+  end
+  # Into reverse order by score:
+  @tweets.sort! { |x, y| y[:score] <=> x[:score] }
+
+  # The variables needed for the template:
+  @total_tweets = @tweets.length
+  @tweets = @tweets[0...settings.max_tweets_to_show]
+  @days_to_fetch = settings.days_to_fetch
+  @screen_name = REDIS.get("user:#{access_token}:screen_name")
+
+  # Set the etag to be for this Twitter user today.
+  etag Digest::MD5.hexdigest(@screen_name + Date.today.strftime('%d%m%Y'))
+
+  # Let's go!
+  erb :my_best_tweets
 end
 
 
@@ -144,10 +144,10 @@ end
 get '/configure/' do
   if !params['return_url']
     return 400, 'No return_url parameter was provided'
-  else
-    # Save the return URL so we still have it after authentication.
-    session[:bergcloud_return_url] = params['return_url']
   end
+
+  # Save the return URL so we still have it after authentication.
+  session[:bergcloud_return_url] = params['return_url']
 
   # OAUTH Step 1: Obtaining a request token.
   # (`domain` is in `helpers`)
@@ -188,62 +188,67 @@ end
 #     * :request_token_secret
 #
 get '/return/' do
+  if params[:denied]
+    # TODO: We should return to Remote somehow...?
+    return 500, "User chose not to authorise with Twitter."
+  end
+
   if !params[:oauth_verifier]
     return 500, 'No oauth verifier was returned by Twitter'
-  else
-    if !session[:bergcloud_return_url]
-      return 500, 'A cookie was expected, but was missing. Are cookies enabled? Please return to BERG Cloud and try again.'
-    else 
-      return_url = session[:bergcloud_return_url]
-      session[:bergcloud_return_url] = nil
-    end
-
-    # Recreate the request token using our stored token and secret.
-    begin
-      request_token = OAuth::RequestToken.new(oauth,
-                                              session[:request_token],
-                                              session[:request_token_secret])
-    rescue OAuth::Unauthorized
-      return 401, 'Unauthorized when trying to get a request token from Twitter' 
-    end
-
-    # Tidy up, now we've finished with them.
-    session[:request_token] = session[:request_token_secret] = nil
-
-    # OAuth Step 3: Converting the request token to an access token.
-    begin
-      # accesss_token will have access_token.token and access_token.secret
-      access_token = request_token.get_access_token(
-                                   :oauth_verifier => params[:oauth_verifier])
-    rescue OAuth::Unauthorized
-      return 401, 'Unauthorized when trying to get an access token from Twitter' 
-    end
-
-    if !access_token
-      return 500, 'Unable to retrieve an access token from Twitter'
-    else
-      # We've finished authenticating!
-      # We now need to fetch the user's ID from twitter.
-      # The client will enable us to access client.current_user which contains
-      # the user's data.
-      client = twitter_client(access_token.token, access_token.secret)
-
-      # Although we have the access token and secret, we still need the Twitter
-      # user ID in order to actually fetch the tweets for the publication.
-      begin
-        user_id = client.current_user[:id]
-      rescue Twitter::Error::BadRequest
-        return 500, "Bad authentication data when trying to get user's Twitter info"
-      end
-
-      REDIS.set("user:#{access_token.token}:user_id", user_id)
-      REDIS.set("user:#{access_token.token}:screen_name", client.current_user[:screen_name])
-      REDIS.set("user:#{access_token.token}:secret", access_token.secret)
-
-      # If this worked, send the user's Access Token back to BERG Cloud
-      redirect "#{return_url}?config[access_token]=#{access_token.token}"
-    end
   end
+
+  if !session[:bergcloud_return_url]
+    return 500, 'A cookie was expected, but was missing. Are cookies enabled? Please return to BERG Cloud and try again.'
+  end
+
+  return_url = session[:bergcloud_return_url]
+  session[:bergcloud_return_url] = nil
+
+  # Recreate the request token using our stored token and secret.
+  begin
+    request_token = OAuth::RequestToken.new(oauth,
+                                            session[:request_token],
+                                            session[:request_token_secret])
+  rescue OAuth::Unauthorized
+    return 401, 'Unauthorized when trying to get a request token from Twitter' 
+  end
+
+  # Tidy up, now we've finished with them.
+  session[:request_token] = session[:request_token_secret] = nil
+
+  # OAuth Step 3: Converting the request token to an access token.
+  begin
+    # accesss_token will have access_token.token and access_token.secret
+    access_token = request_token.get_access_token(
+                                 :oauth_verifier => params[:oauth_verifier])
+  rescue OAuth::Unauthorized
+    return 401, 'Unauthorized when trying to get an access token from Twitter' 
+  end
+
+  if !access_token
+    return 500, 'Unable to retrieve an access token from Twitter'
+  end
+
+  # We've finished authenticating!
+  # We now need to fetch the user's ID from twitter.
+  # The client will enable us to access client.current_user which contains
+  # the user's data.
+  client = twitter_client(access_token.token, access_token.secret)
+
+  # Although we have the access token and secret, we still need the Twitter
+  # user ID in order to actually fetch the tweets for the publication.
+  begin
+    user_id = client.current_user[:id]
+  rescue Twitter::Error::BadRequest
+    return 500, "Bad authentication data when trying to get user's Twitter info"
+  end
+
+  REDIS.set("user:#{access_token.token}:user_id", user_id)
+  REDIS.set("user:#{access_token.token}:screen_name", client.current_user[:screen_name])
+  REDIS.set("user:#{access_token.token}:secret", access_token.secret)
+
+  # If this worked, send the user's Access Token back to BERG Cloud
+  redirect "#{return_url}?config[access_token]=#{access_token.token}"
 end
 
 
