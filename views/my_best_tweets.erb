@@ -8,50 +8,53 @@
       padding: 0px;
       margin: 0px;
       font-family: Arial, sans-serif;
-      font-size: 16px;
-      line-height: 21px;
+      font-size: 18px;
+      line-height: 22px;
     }
     h1 {
       font-weight: bold;
       text-align: center;
       word-wrap: break-word;
-      font-size: 20px;
-      line-height: 28px;
+      font-size: 24px;
+      line-height: 30px;
       margin: 0 0 0.5em 0;
-    }
-    p {
-      margin: 0 0 0.5em 0;
-    }
-    p.user {
-
-    }
-    img.avatar {
-      float: left;
-      margin-right: 10px;
+      background: #000 url(<%= domain %>/twitter_logo.png) 340px 5px no-repeat;
+      color: #fff;
+      padding: 5px 0;
     }
     img.logo {
       vertical-align: middle;
     }
+    p {
+      margin: 0 0 0.5em 0;
+    }
+    img.avatar {
+      float: left;
+      margin-right: 10px;
+      border-radius: 5px;
+    }
+    .user strong {
+      font-size: 20px;
+    }
     ol {
-      border-top: 1px solid black;
+      border-top: 2px dotted black;
       padding-left: 0px;
     }
     li {
       margin: 10px 0 0 0;
-      border-bottom: 1px solid black;
+      border-bottom: 2px dotted black;
       padding: 0 0 10px 0;
     }
     .position {
       display: inline-block;
-      width: 15px;
-      margin: 3px 5px 0 5px;
+      width: 10px;
+      margin: 0 5px 0 5px;
       vertical-align: top;
       font-weight: bold;
-      font-size: 24px;
     }
     .content {
       display: inline-block;
-      width: 350px;
+      width: 349px;
       margin: 0 5px 0 0;
     }
     .about {
@@ -61,26 +64,30 @@
       font-weight: bold;
       font-size: 16px;
     }
+    .date {
+      white-space: nowrap;
+    }
     .cf:after {
-          content:"";
-          display:table;
-          clear:both;
-      }
+      content:"";
+      display:table;
+      clear:both;
+    }
   </style>
 </head>
 <body>
-  <h1>My Best Tweets <img class="logo" src="<%= @domain %>/twitter_logo.png" width="30" height="25" /></h1>
+  <h1>My Best Tweets</h1>
 
   <p class="user cf">
-    <img class="avatar" src="<%= @profile_image_url %>" width="48" height="48" />
+    <img class="avatar dither" src="<%= @profile_image_url %>" width="48" height="48" />
     <strong><%= @user_name %></strong><br />
     @<%= @screen_name %>
   </p>
 
 <p>
-<%= @user_name %> sent <%= @total_tweets %> Tweet<% if @total_tweets > 1 %>s<% end %> in the past <% if @days_to_fetch == 1 %>24 hours<% else %><%= @days_to_fetch %> days<% end -%>
+You sent <%= @total_tweets %> Tweet<% if @total_tweets > 1 %>s<% end %> in the past <% if @days_to_fetch == 1 %>24&nbsp;hours<% else %><%= @days_to_fetch %>&nbsp;days<% end -%>
 <% if @tweets.length < @total_tweets -%>
-. The most popular <% if @tweets.length == 1 %>was<% else %>were<% end -%>
+.<br />
+The most popular&nbsp;<% if @tweets.length == 1 %>was<% else %>were<% end -%>
 <% end -%>
 :    
 </p>
@@ -93,15 +100,15 @@
           <%= t[:text] %><br />
           <span class="about">
             <% if t[:retweet_count] > 0 %>
-              <strong><%= t[:retweet_count] %></strong> Retweet<% if t[:retweet_count] != 1 %>s<% end %><% if t[:favorite_count] > 0 %>,<% end %>
+              <strong><%= t[:retweet_count] %> Retweet<% if t[:retweet_count] != 1 %>s<% end %></strong><% if t[:favorite_count] > 0 %>,<% end %>
             <% end %>
             <% if t[:favorite_count] > 0 %>
-              <strong><%= t[:favorite_count] %></strong> Favorite<% if t[:favorite_count] != 1 %>s<% end %>
+              <strong><%= t[:favorite_count] %> Favorite<% if t[:favorite_count] != 1 %>s<% end %></strong>
             <% end %>
             <% if t[:retweet_count] && t[:favorite_count] %>
               ∙
             <% end %>
-            <%= t[:created_at].strftime('%l:%M%P, %e %h %Y') %>
+            <span class="date"><%= t[:created_at].strftime('%l:%M%P, %e %h %Y') %></span>
           </span>
         </span>
       </li>
