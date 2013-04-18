@@ -8,6 +8,10 @@ require 'twitter'
 # So we can see what's going wrong on Heroku.
 set :show_exceptions, true
 
+# Enable trim mode in templates, so we can choose to ignore blank lines by
+# ending tags with -%>
+set :erb, :trim => '-'
+
 enable :sessions
 
 # TODO: Error checking if these aren't present.
@@ -91,7 +95,7 @@ get '/edition/' do
     timeline = client.user_timeline(user_id,
                                    :count => 200,
                                    :exclude_replies => false,
-                                   :trim_user => true,
+                                   :trim_user => false, 
                                    :include_rts => false)
   rescue Twitter::Error::Unauthorized
     return 401, "Not authorised to access this user's timeline."
@@ -105,23 +109,38 @@ get '/edition/' do
   # the past n days, and calculate their favorite/retweet score.
   time_cutoff = (Time.now - (86400 * settings.days_to_fetch))
   @tweets = []
-  timeline.each do |tweet|
-    break if tweet.created_at < time_cutoff
+  timeline.each do |t|
+    break if t.created_at < time_cutoff
     @tweets.push({
-      :text => tweet[:text],
-      :favorite_count => tweet[:favorite_count],
-      :retweet_count => tweet[:retweet_count],
-      :score => tweet_score(tweet[:favorite_count], tweet[:retweet_count])
+      :text => t[:text],
+      :created_at => t[:created_at],
+      :favorite_count => t[:favorite_count],
+      :retweet_count => t[:retweet_count],
+      :score => tweet_score(t[:favorite_count], t[:retweet_count])
     })
   end
+  # The total tweets sent by this user in that time period.
+  @total_tweets = @tweets.length
+
+  # Get rid of any with no favorites or retweets.
+  @tweets.reject! { |t| t[:score] == 0 }
+
+  if @tweets.length == 0
+    return 200, "No tweets to display for this day"
+  end
+
   # Into reverse order by score:
   @tweets.sort! { |x, y| y[:score] <=> x[:score] }
 
   # The variables needed for the template:
-  @total_tweets = @tweets.length
   @tweets = @tweets[0...settings.max_tweets_to_show]
   @days_to_fetch = settings.days_to_fetch
-  @screen_name = REDIS.get("user:#{access_token}:screen_name")
+  # These can change, so we don't store them in Redis, but get them from the
+  # fetched tweets.
+  @screen_name = timeline[0][:user][:screen_name]
+  @user_name = timeline[0][:user][:name]
+  @profile_image_url = timeline[0][:user][:profile_image_url]
+
 
   # Set the etag to be for this Twitter user today.
   etag Digest::MD5.hexdigest(@screen_name + Date.today.strftime('%d%m%Y'))
@@ -244,7 +263,6 @@ get '/return/' do
   end
 
   REDIS.set("user:#{access_token.token}:user_id", user_id)
-  REDIS.set("user:#{access_token.token}:screen_name", client.current_user[:screen_name])
   REDIS.set("user:#{access_token.token}:secret", access_token.secret)
 
   # If this worked, send the user's Access Token back to BERG Cloud
@@ -266,12 +284,15 @@ get '/sample/' do
   @tweets = [
     # https://twitter.com/samuelpepys/status/323368562943197184
     {:text => "Drank a good morning draught with Mr. Sheply, which occasioned my thinking upon the happy life that I live now.",
+      :created_at => Time.new(2013, 4, 14, 10, 34, 07, '+01:00'),
       :favorite_count => 11, :retweet_count => 40, :score => tweet_score(11, 40)},
     # https://twitter.com/samuelpepys/status/323358544365756417
     {:text => "What with the goodness of the bed and the rocking of the ship I slept till almost ten o’clock.",
+      :created_at => Time.new(2013, 4, 14, 9, 54, 19, '+01:00'),
       :favorite_count => 9, :retweet_count => 25, :score => tweet_score(9, 25)},
     # https://twitter.com/samuelpepys/status/323237710284353537
     {:text => "It being very rainy, and the rain coming upon my bed, I went and lay with John Goods in the great cabin below.",
+      :created_at => Time.new(2013, 4, 14, 1, 54, 10, '+01:00'),
       :favorite_count => 1, :retweet_count => 15, :score => tweet_score(1, 15)},
   ]
   # Into reverse order by score:
@@ -282,6 +303,8 @@ get '/sample/' do
   @tweets = @tweets[0...settings.max_tweets_to_show]
   @days_to_fetch = 1
   @screen_name = 'samuelpepys'
+  @user_name = 'Samuel Pepys'
+  @profile_image_url = 'http://si0.twimg.com/profile_images/205799757/250px-Samuel_Pepys2_normal.jpg'
 
   etag Digest::MD5.hexdigest('sample')
 

@@ -8,13 +8,14 @@
       padding: 0px;
       margin: 0px;
       font-family: Arial, sans-serif;
-      font-size: 20px;
+      font-size: 16px;
     }
     h1 {
       font-weight: bold;
       text-align: center;
       word-wrap: break-word;
-      font-size: 30px;
+      font-size: 20px;
+      margin: 0 0 0.5em 0;
     }
     p {
       line-height: 1.2em;
@@ -25,24 +26,27 @@
       margin-bottom: 0.5em;
     }
     .about {
-      font-size: 18px;
+      font-size: 14px;
     }
     .about strong {
       font-weight: bold;
-      font-size: 20px;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
-  <h1>@<%= @screen_name %>’s<br />Best Tweets</h1>
+  <h1>My Best Tweets</h1>
 
-  <% if @total_tweets <= @tweets.length %>
-    <p>@<%= @screen_name %> only sent <%= @total_tweets %> tweet<% if @total_tweets > 1 %>s<% end %> in the past <% if @days_to_fetch == 1 %>24 hours<% else %><%= @days_to_fetch %> days<% end %>:</p>
+  <p><img src="<%= @profile_image_url %>" /><%= @user_name %><br />
+    @<%= @screen_name %></p>
 
-  <% else %>
-    <p>@<%= @screen_name %> tweeted <%= @total_tweets %> times in the past <% if @days_to_fetch == 1 %>day<% else %><%= @days_to_fetch %> days<% end %>. The most popular were:</p>
-
-  <% end %>
+<p>
+@<%= @screen_name %> sent <%= @total_tweets %> Tweet<% if @total_tweets > 1 %>s<% end %> in the past <% if @days_to_fetch == 1 %>24 hours<% else %><%= @days_to_fetch %> days<% end -%>
+<% if @tweets.length < @total_tweets -%>
+. The most popular <% if @tweets.length == 1 %>was<% else %>were<% end -%>
+<% end -%>
+:    
+</p>
 
   <ol>
     <% @tweets.each do |t| %>
@@ -56,6 +60,10 @@
           <% if t[:favorite_count] > 0 %>
             <strong><%= t[:favorite_count] %></strong> Favorite<% if t[:favorite_count] != 1 %>s<% end %>
           <% end %>
+          <% if t[:retweet_count] && t[:favorite_count] %>
+            ∙
+          <% end %>
+          <%= t[:created_at].strftime('%l:%M%P, %e %h %Y') %>
         </span>
       </li>
     <% end %>
