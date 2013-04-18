@@ -304,7 +304,7 @@ get '/sample/' do
   @days_to_fetch = 1
   @screen_name = 'samuelpepys'
   @user_name = 'Samuel Pepys'
-  @profile_image_url = 'http://si0.twimg.com/profile_images/205799757/250px-Samuel_Pepys2_normal.jpg'
+  @profile_image_url = '../sample_avatar.jpg'
 
   etag Digest::MD5.hexdigest('sample')
 
