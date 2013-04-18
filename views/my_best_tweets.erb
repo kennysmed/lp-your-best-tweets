@@ -21,6 +21,17 @@
       line-height: 1.2em;
       margin: 0 0 0.5em 0;
     }
+    p.user {
+
+    }
+    img.avatar {
+      float: left;
+      margin-right: 10px;
+    }
+    img.logo {
+      float: right;
+      margin-left: 10px;
+    }
     li {
       line-height: 1.2em;
       margin-bottom: 0.5em;
@@ -32,16 +43,25 @@
       font-weight: bold;
       font-size: 16px;
     }
+    .cf:after {
+          content:"";
+          display:table;
+          clear:both;
+      }
   </style>
 </head>
 <body>
   <h1>My Best Tweets</h1>
 
-  <p><img src="<%= @profile_image_url %>" /><%= @user_name %><br />
-    @<%= @screen_name %></p>
+  <p class="user cf">
+    <img class="avatar" src="<%= @profile_image_url %>" width="48" height="48" />
+    <img class="logo" src="../twitter_logo.png" width="59" height="48" />
+    <strong><%= @user_name %></strong><br />
+    @<%= @screen_name %>
+  </p>
 
 <p>
-@<%= @screen_name %> sent <%= @total_tweets %> Tweet<% if @total_tweets > 1 %>s<% end %> in the past <% if @days_to_fetch == 1 %>24 hours<% else %><%= @days_to_fetch %> days<% end -%>
+<%= @user_name %> sent <%= @total_tweets %> Tweet<% if @total_tweets > 1 %>s<% end %> in the past <% if @days_to_fetch == 1 %>24 hours<% else %><%= @days_to_fetch %> days<% end -%>
 <% if @tweets.length < @total_tweets -%>
 . The most popular <% if @tweets.length == 1 %>was<% else %>were<% end -%>
 <% end -%>
