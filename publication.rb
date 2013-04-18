@@ -140,7 +140,7 @@ get '/edition/' do
   @screen_name = timeline[0][:user][:screen_name]
   @user_name = timeline[0][:user][:name]
   @profile_image_url = timeline[0][:user][:profile_image_url]
-
+  @domain = domain
 
   # Set the etag to be for this Twitter user today.
   etag Digest::MD5.hexdigest(@screen_name + Date.today.strftime('%d%m%Y'))
@@ -304,7 +304,8 @@ get '/sample/' do
   @days_to_fetch = 1
   @screen_name = 'samuelpepys'
   @user_name = 'Samuel Pepys'
-  @profile_image_url = '../sample_avatar.jpg'
+  @profile_image_url = domain + '/sample_avatar.jpg'
+  @domain = domain
 
   etag Digest::MD5.hexdigest('sample')
 
