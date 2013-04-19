@@ -2,7 +2,7 @@
     "owner_email" : "publishers@bergcloud.com",
     "publication_api_version":"1.0",
     "name": "Your Best Tweets",
-    "description": "Your most favorited and retweeted tweets",
+    "description": "Your most favorited and retweeted tweets from the previous 24 hours",
     "delivered_on": "every day",
     "send_timezone_info": false,
     "send_delivery_count": false,
