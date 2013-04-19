@@ -5,7 +5,7 @@
   <style type="text/css">
     body {
       width: 384px;
-      padding: 21px 0 0 0;
+      padding: 24px 0 0 0;
       margin: 0px;
       font-family: Arial, sans-serif;
       font-size: 18px;
@@ -30,17 +30,17 @@
         img.logo {
           position: absolute;
           top: 0px;
-          left: 169px;
+          left: 167px;
         }
         h1 {
-          font-family: baskerville, palatino, 'palatino linotype', georgia, serif;;
+          font-family: georgia, serif;;
           font-style: italic;
           font-weight: normal;
           font-size: 36px;
           text-align: center;
           word-wrap: break-word;
           line-height: 30px;
-          margin: 18px 0 9px 0;
+          margin: 20px 0 9px 0;
           padding: 5px 0;
         }
 
@@ -70,13 +70,13 @@
 
         ol {
           list-style-type: none;
-          border-top: 1px solid black;
-          padding-left: 0px;
+          padding: 0;
+          margin: 0 0 20px 0;
         }
           li {
-            margin: 10px 0 0 0;
-            border-bottom: 1px solid black;
-            padding: 0 0 10px 0;
+            margin: 5px 0 0 0;
+            background: url(<%= domain %>/img/hr.png) 0 0 no-repeat;
+            padding: 20px 0 0 0;
           }
             .position {
               display: inline-block;
@@ -105,13 +105,13 @@
 <body>
   <div class="certificate">
     <div class="certificate-inner">
-      <img class="logo" src="<%= domain %>/twitter_logo_circle.png" width="52" height="52" />
+      <img class="logo" src="<%= domain %>/img/twitter_logo_circle.png" width="56" height="56" alt="Twitter logo" />
 
-      <h1>My Best Tweets</h1>
+      <h1><img src="<%= domain %>/img/h1.png" width="294" height="43" alt="Your Best Tweets" /></h1>
 
       <div class="intro">
         <p class="user cf">
-          <img class="avatar dither" src="<%= @profile_image_url %>" width="48" height="48" />
+          <img class="avatar dither" src="<%= @profile_image_url %>" width="48" height="48" alt="User avatar" />
           <span class="names">
             <strong><%= @user_name %></strong><br />
             @<%= @screen_name %>
