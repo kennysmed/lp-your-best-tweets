@@ -14,7 +14,7 @@ enable :sessions
 
 oauth = OAuth::Consumer.new(
                   ENV['TWITTER_CONSUMER_KEY'], ENV['TWITTER_CONSUMER_SECRET'],
-                  { :site => 'https://api.twitter.com' })
+                  { site: 'https://api.twitter.com' })
 
 # For fetching data from Twitter, not for doing authentication.
 Twitter.configure do |config|
@@ -62,8 +62,8 @@ helpers do
   # (or the app's access token and secret).
   def twitter_client(access_token, access_token_secret)
     return Twitter::Client.new(
-        :oauth_token => access_token,
-        :oauth_token_secret => access_token_secret
+        oauth_token: access_token,
+        oauth_token_secret: access_token_secret
       )
   end
 
@@ -100,10 +100,10 @@ get '/edition/' do
     # TODO: We're assuming that the period of tweets we need to fetch will be
     # within the 200-per-request limit. But it might not be...
     timeline = client.user_timeline(user_id,
-                                   :count => 200,
-                                   :exclude_replies => false,
-                                   :trim_user => false, 
-                                   :include_rts => false)
+                                   count: 200,
+                                   exclude_replies: false,
+                                   trim_user: false, 
+                                   include_rts: false)
   rescue Twitter::Error::Unauthorized
     return 401, "Not authorised to access this user's timeline."
   rescue Twitter::Error::NotFound
@@ -119,11 +119,11 @@ get '/edition/' do
   timeline.each do |t|
     break if t.created_at < time_cutoff
     @tweets.push({
-      :text => t[:text],
-      :created_at => t[:created_at],
-      :favorite_count => t[:favorite_count],
-      :retweet_count => t[:retweet_count],
-      :score => tweet_score(t[:favorite_count], t[:retweet_count])
+      text: t[:text],
+      created_at: t[:created_at],
+      favorite_count: t[:favorite_count],
+      retweet_count: t[:retweet_count],
+      score: tweet_score(t[:favorite_count], t[:retweet_count])
     })
   end
   # The total tweets sent by this user in that time period.
@@ -179,7 +179,7 @@ get '/configure/' do
   # (`domain` is in `helpers`)
   begin
     request_token = oauth.get_request_token(
-                                        :oauth_callback => "#{domain}/return/")
+                                        oauth_callback: "#{domain}/return/")
   rescue OAuth::Unauthorized
     return 401, 'Unauthorized when asking Twitter for a token to make a request' 
   end
@@ -246,7 +246,7 @@ get '/return/' do
   begin
     # accesss_token will have access_token.token and access_token.secret
     access_token = request_token.get_access_token(
-                                 :oauth_verifier => params[:oauth_verifier])
+                                 oauth_verifier: params[:oauth_verifier])
   rescue OAuth::Unauthorized
     return 401, 'Unauthorized when trying to get an access token from Twitter' 
   end
@@ -290,17 +290,17 @@ get '/sample/' do
   # Some hard-coded tweets from a single day of @samuelpepys' tweets.
   @tweets = [
     # https://twitter.com/samuelpepys/status/323368562943197184
-    {:text => "Drank a good morning draught with Mr. Sheply, which occasioned my thinking upon the happy life that I live now.",
-      :created_at => Time.new(2013, 4, 14, 10, 34, 07, '+01:00'),
-      :favorite_count => 11, :retweet_count => 40, :score => tweet_score(11, 40)},
+    {text: "Drank a good morning draught with Mr. Sheply, which occasioned my thinking upon the happy life that I live now.",
+      created_at: Time.new(2013, 4, 14, 10, 34, 07, '+01:00'),
+      favorite_count: 11, retweet_count: 40, score: tweet_score(11, 40)},
     # https://twitter.com/samuelpepys/status/323358544365756417
-    {:text => "What with the goodness of the bed and the rocking of the ship I slept till almost ten o’clock.",
-      :created_at => Time.new(2013, 4, 14, 9, 54, 19, '+01:00'),
-      :favorite_count => 9, :retweet_count => 25, :score => tweet_score(9, 25)},
+    {text: "What with the goodness of the bed and the rocking of the ship I slept till almost ten o’clock.",
+      created_at: Time.new(2013, 4, 14, 9, 54, 19, '+01:00'),
+      favorite_count: 9, retweet_count: 25, score: tweet_score(9, 25)},
     # https://twitter.com/samuelpepys/status/323237710284353537
-    {:text => "It being very rainy, and the rain coming upon my bed, I went and lay with John Goods in the great cabin below.",
-      :created_at => Time.new(2013, 4, 14, 1, 54, 10, '+01:00'),
-      :favorite_count => 1, :retweet_count => 15, :score => tweet_score(1, 15)},
+    {text: "It being very rainy, and the rain coming upon my bed, I went and lay with John Goods in the great cabin below.",
+      created_at: Time.new(2013, 4, 14, 1, 54, 10, '+01:00'),
+      favorite_count: 1, retweet_count: 15, score: tweet_score(1, 15)},
   ]
   # Into reverse order by score:
   @tweets.sort! { |x, y| y[:score] <=> x[:score] }
