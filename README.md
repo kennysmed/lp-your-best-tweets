@@ -29,3 +29,10 @@ So, your four environment variables in production will be:
 
 In development, it's the same except `REDISCLOUD_URL` isn't used.
 
+Run locally with:
+
+    $ bundle exec ruby publication.rb
+
+or, if you require a specific port, maybe for use with something like [localtunnel](http://progrium.com/localtunnel/):
+
+    $ bundle exec ruby publication.rb -p 5000
