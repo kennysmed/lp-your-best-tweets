@@ -146,7 +146,7 @@ get '/edition/' do
   etag Digest::MD5.hexdigest(@screen_name + Date.today.strftime('%d%m%Y'))
 
   # Let's go!
-  erb :my_best_tweets
+  erb :publication
 end
 
 
@@ -310,7 +310,7 @@ get '/sample/' do
   etag Digest::MD5.hexdigest('sample')
 
   # Let's go!
-  erb :my_best_tweets
+  erb :publication
 end
 
 
