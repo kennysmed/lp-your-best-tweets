@@ -5,8 +5,6 @@ require 'redis'
 require 'sinatra'
 require 'twitter'
 
-# So we can see what's going wrong on Heroku.
-set :show_exceptions, true
 
 # Enable trim mode in templates, so we can choose to ignore blank lines by
 # ending tags with -%>
@@ -14,7 +12,6 @@ set :erb, :trim => '-'
 
 enable :sessions
 
-# TODO: Error checking if these aren't present.
 oauth = OAuth::Consumer.new(
                   ENV['TWITTER_CONSUMER_KEY'], ENV['TWITTER_CONSUMER_SECRET'],
                   { :site => 'https://api.twitter.com' })
@@ -27,22 +24,26 @@ end
 
 
 configure do
-  # TODO make this envrinoment-specific stuff better.
-  begin
+  if settings.production?
     uri = URI.parse(ENV['REDISCLOUD_URL'])
     REDIS = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
-  rescue URI::InvalidURIError
+  else
     REDIS = Redis.new()
   end
+
+  if settings.development?
+    # So we can see what's going wrong on Heroku.
+    set :show_exceptions, true
+  end
+
+  # Do we show the top 3 Tweets? 10? etc.
+  set :max_tweets_to_show, 3
 
   # How many days' worth of tweets do we fetch?
   set :days_to_fetch, 1
 
   # When is the oldest tweet we'd fetch.
   set :time_cutoff, (Time.now - (86400 * settings.days_to_fetch))
-
-  # Do we show the top 3? 10? etc.
-  set :max_tweets_to_show, 3
 end
 
 
@@ -70,6 +71,12 @@ helpers do
   def tweet_score(favorite_count, retweet_count)
     return favorite_count + (retweet_count * 2)
   end
+end
+
+
+# Nothing to show at the root, so might as well nicely show the sample.
+get '/' do
+  redirect '/sample/'
 end
 
 
@@ -209,7 +216,7 @@ end
 get '/return/' do
   if params[:denied]
     # TODO: We should return to Remote somehow...?
-    return 500, "User chose not to authorise with Twitter."
+    return 500, "You chose not to authorise with Twitter. No problem, but we don't handle this very well at the moment, sorry."
   end
 
   if !params[:oauth_verifier]
