@@ -14,11 +14,6 @@
     p {
       margin: 0 0 0.5em 0;
     }
-    .cf:after {
-      content:"";
-      display:table;
-      clear:both;
-    }
     .certificate {
       border: 2px solid #000;
       padding: 3px;
@@ -110,7 +105,7 @@
       <h1><img src="<%= domain %>/img/h1.png" width="289" height="43" alt="Your Best Tweets" /></h1>
 
       <div class="intro">
-        <p class="user cf">
+        <p class="user">
           <img class="avatar dither" src="<%= @profile_image_url %>" width="48" height="48" alt="User avatar" />
           <span class="names">
             <strong><%= @user_name %></strong><br />
