@@ -12,6 +12,10 @@ set :erb, :trim => '-'
 
 enable :sessions
 
+raise 'TWITTER_CONSUMER_KEY is not set' if !ENV['TWITTER_CONSUMER_KEY']
+raise 'TWITTER_CONSUMER_SECRET is not set' if !ENV['TWITTER_CONSUMER_SECRET']
+
+
 oauth = OAuth::Consumer.new(
                   ENV['TWITTER_CONSUMER_KEY'], ENV['TWITTER_CONSUMER_SECRET'],
                   { site: 'https://api.twitter.com' })
@@ -25,6 +29,7 @@ end
 
 configure do
   if settings.production?
+    raise 'REDISCLOUD_URL is not set' if !ENV['REDISCLOUD_URL']
     uri = URI.parse(ENV['REDISCLOUD_URL'])
     REDIS = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password)
   else
