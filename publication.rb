@@ -110,7 +110,18 @@ get '/edition/' do
                                    trim_user: false, 
                                    include_rts: false)
   rescue Twitter::Error::Unauthorized
-    return 401, "Not authorised to access this user's timeline."
+    # Probably the user has de-authorized our app on Twitter.
+    # So we're going to print a message to let the user know.
+    # Set the etag to be for this Twitter user today.
+    etag Digest::MD5.hexdigest(user_id.to_s + Date.today.strftime('%d%m%Y'))
+    @error = {
+      title: "Oops…",
+      message: <<-END_OF_STRING
+        <p>We tried to fetch your best Tweets from Twitter but this App is no longer authorized to access your account.</p>
+        <p>You should go to remote.bergcloud.com and unsubscribe from the “Your Best Tweets” Publication. You can then re&#8209;subscribe if you want to receive Tweets again.</p>
+        END_OF_STRING
+    }
+    return erb :error
   rescue Twitter::Error::NotFound
     return 500, "Twitter user ID not found."
   rescue Twitter::Error
@@ -138,11 +149,10 @@ get '/edition/' do
   @tweets.reject! { |t| t[:score] == 0 }
 
   # Can change, so don't store in Redis, but get from fetched tweets.
-  @screen_name = timeline[0][:user][:screen_name]
 
   if @tweets.length == 0
     # Set the etag to be for this Twitter user today.
-    etag Digest::MD5.hexdigest(@screen_name + Date.today.strftime('%d%m%Y'))
+    etag Digest::MD5.hexdigest(user_id.to_s + Date.today.strftime('%d%m%Y'))
     return 204, "No tweets to display for this day."
   end
 
@@ -153,12 +163,13 @@ get '/edition/' do
   @tweets = @tweets[0...settings.max_tweets_to_show]
   @days_to_fetch = settings.days_to_fetch
   # Can change, so don't store in Redis, but get from fetched tweets.
+  @screen_name = timeline[0][:user][:screen_name]
   @user_name = timeline[0][:user][:name]
   @profile_image_url = timeline[0][:user][:profile_image_url]
   @domain = domain
 
   # Set the etag to be for this Twitter user today.
-  etag Digest::MD5.hexdigest(@screen_name + Date.today.strftime('%d%m%Y'))
+  etag Digest::MD5.hexdigest(user_id.to_s + Date.today.strftime('%d%m%Y'))
 
   # Let's go!
   content_type 'text/html; charset=utf-8'
