@@ -137,8 +137,13 @@ get '/edition/' do
   # Get rid of any with no favorites or retweets.
   @tweets.reject! { |t| t[:score] == 0 }
 
+  # Can change, so don't store in Redis, but get from fetched tweets.
+  @screen_name = timeline[0][:user][:screen_name]
+
   if @tweets.length == 0
-    return 200, "No tweets to display for this day"
+    # Set the etag to be for this Twitter user today.
+    etag Digest::MD5.hexdigest(@screen_name + Date.today.strftime('%d%m%Y'))
+    return 204, "No tweets to display for this day."
   end
 
   # Into reverse order by score:
@@ -147,9 +152,7 @@ get '/edition/' do
   # The variables needed for the template:
   @tweets = @tweets[0...settings.max_tweets_to_show]
   @days_to_fetch = settings.days_to_fetch
-  # These can change, so we don't store them in Redis, but get them from the
-  # fetched tweets.
-  @screen_name = timeline[0][:user][:screen_name]
+  # Can change, so don't store in Redis, but get from fetched tweets.
   @user_name = timeline[0][:user][:name]
   @profile_image_url = timeline[0][:user][:profile_image_url]
   @domain = domain
@@ -158,6 +161,7 @@ get '/edition/' do
   etag Digest::MD5.hexdigest(@screen_name + Date.today.strftime('%d%m%Y'))
 
   # Let's go!
+  content_type 'text/html; charset=utf-8'
   erb :publication
 end
 
@@ -319,9 +323,10 @@ get '/sample/' do
   @profile_image_url = domain + '/img/sample_avatar.jpg'
   @domain = domain
 
-  etag Digest::MD5.hexdigest('sample')
+  etag Digest::MD5.hexdigest('sample' + Date.today.strftime('%d%m%Y'))
 
   # Let's go!
+  content_type 'text/html; charset=utf-8'
   erb :publication
 end
 
