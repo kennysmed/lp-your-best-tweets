@@ -124,7 +124,7 @@ get '/edition/' do
     return erb :error
   rescue Twitter::Error::NotFound
     return 500, "Twitter user ID not found."
-  else
+  rescue 
     return 500, "There was an error when fetching the timeline."
   end
 
@@ -202,7 +202,7 @@ get '/configure/' do
                                         oauth_callback: "#{domain}/return/")
   rescue OAuth::Unauthorized
     return 401, 'Unauthorized when asking Twitter for a token to make a request (Step 1)' 
-  else
+  rescue 
     return 401, "Something went wrong when trying to authorize with Twitter (Step 1)"
   end
 
@@ -259,7 +259,7 @@ get '/return/' do
                                             session[:request_token_secret])
   rescue OAuth::Unauthorized
     return 401, 'Unauthorized when trying to get a request token from Twitter (Step 2)' 
-  else
+  rescue 
     return 401, "Something went wrong when trying to authorize with Twitter (Step 2)"
   end
 
@@ -273,7 +273,7 @@ get '/return/' do
                                  oauth_verifier: params[:oauth_verifier])
   rescue OAuth::Unauthorized
     return 401, 'Unauthorized when trying to get an access token from Twitter (Step 3)' 
-  else
+  rescue
     return 401, "Something went wrong when trying to authorize with Twitter (Step 3)"
   end
 
@@ -293,7 +293,7 @@ get '/return/' do
     user_id = client.current_user[:id]
   rescue Twitter::Error::BadRequest
     return 500, "Bad authentication data when trying to get user's Twitter info"
-  else
+  rescue
     return 500, "Something went wrong when trying to get user's Twitter info"
   end
 
