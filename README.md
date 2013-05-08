@@ -1,4 +1,3 @@
-
 # Your Best Tweets - A Little Printer publication
 
 Displays the most popular Tweets, as measured by Retweets and Favorites, from the past 24 hours, as a [Little Printer](http://bergcloud.com/littleprinter/) publication.
