@@ -1,9 +1,10 @@
-
-# Your Best Tweets - A Little Printer publication
+# Your Best Tweets
 
 Displays the most popular Tweets, as measured by Retweets and Favorites, from the past 24 hours, as a [Little Printer](http://bergcloud.com/littleprinter/) publication.
 
 This publication is a Ruby app using Sinatra, and requires Redis. It has only been run in production on [Heroku](http://heroku.com/) using the [Redis Cloud](https://addons.heroku.com/rediscloud) add-on.
+
+See a sample publication at http://remote.bergcloud.com/publications/121
 
 
 ## Setting up
@@ -36,3 +37,8 @@ Run locally with:
 or, if you require a specific port, maybe for use with something like [localtunnel](http://progrium.com/localtunnel/):
 
     $ bundle exec ruby publication.rb -p 5000
+
+----
+
+BERG Cloud Developer documentation: http://remote.bergcloud.com/developers/
+
