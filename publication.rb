@@ -93,6 +93,7 @@ end
 #
 get '/edition/' do
   if !params[:access_token]
+    p "ERROR: No access token provided."
     return 500, 'No access token provided.'
   end
 
@@ -113,6 +114,7 @@ get '/edition/' do
     # Probably the user has de-authorized our app on Twitter.
     # So we're going to print a message to let the user know.
     # Set the etag to be for this Twitter user today.
+    p "ERROR: Not authorized for #{access_token}."
     etag Digest::MD5.hexdigest(user_id.to_s + Date.today.strftime('%d%m%Y'))
     @error = {
       title: "Oops…",
@@ -123,8 +125,10 @@ get '/edition/' do
     }
     return erb :error
   rescue Twitter::Error::NotFound
+    p "ERROR: Twitter user ID not found for #{access_token}."
     return 500, "Twitter user ID not found."
   rescue 
+    p "ERROR: There was an error when fetching the timeline for #{access_token}."
     return 500, "There was an error when fetching the timeline."
   end
 
